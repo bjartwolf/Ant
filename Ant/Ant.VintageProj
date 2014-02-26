@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <!-- Collapse property groups ? -->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Default</Configuration>
+    <AssemblyName>Ant</AssemblyName>
+    <Name>Ant</Name>
+    <RootNamespace>Ant</RootNamespace>
+    <ProjectGuid>{04f9da4a-e021-451c-9ab8-7a563424b757}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!-- Set the VintageStudioPath property by probing in different locations where Vintage Studio could be installed -->
+    <!-- Regular LocalAppData -->
+    <VintageStudioTargetsFilePath Condition="'$(VintageStudioTargetsFilePath)' == '' AND Exists('$(LocalAppData)\Microsoft\VisualStudio\12.0\Extensions')">$([System.IO.Directory]::GetFiles('$(LocalAppData)\Microsoft\VisualStudio\12.0\Extensions', 'VintageStudio.targets', System.IO.SearchOption.AllDirectories))</VintageStudioTargetsFilePath>
+    <VintageStudioTargetsFilePath Condition="'$(VintageStudioTargetsFilePath)' == '' AND Exists('$(LocalAppData)\Microsoft\VisualStudio\11.0\Extensions')">$([System.IO.Directory]::GetFiles('$(LocalAppData)\Microsoft\VisualStudio\11.0\Extensions', 'VintageStudio.targets', System.IO.SearchOption.AllDirectories))</VintageStudioTargetsFilePath>
+    <VintageStudioTargetsFilePath Condition="'$(VintageStudioTargetsFilePath)' == '' AND Exists('$(LocalAppData)\Microsoft\VisualStudio\10.0\Extensions\Pawel Kadluczka\Vintage Studio\1.0')">$([System.IO.Directory]::GetFiles('$(LocalAppData)\Microsoft\VisualStudio\10.0\Extensions\Pawel Kadluczka\Vintage Studio\1.0', 'VintageStudio.targets', System.IO.SearchOption.AllDirectories))</VintageStudioTargetsFilePath>
+    <!-- Experimental LocalAppData -->
+    <VintageStudioTargetsFilePath Condition="'$(VintageStudioTargetsFilePath)' == '' AND Exists('$(LocalAppData)\Microsoft\VisualStudio\12.0Exp\Extensions')">$([System.IO.Directory]::GetFiles('$(LocalAppData)\Microsoft\VisualStudio\12.0Exp\Extensions', 'VintageStudio.targets', System.IO.SearchOption.AllDirectories))</VintageStudioTargetsFilePath>
+    <VintageStudioTargetsFilePath Condition="'$(VintageStudioTargetsFilePath)' == '' AND Exists('$(LocalAppData)\Microsoft\VisualStudio\11.0Exp\Extensions')">$([System.IO.Directory]::GetFiles('$(LocalAppData)\Microsoft\VisualStudio\11.0Exp\Extensions', 'VintageStudio.targets', System.IO.SearchOption.AllDirectories))</VintageStudioTargetsFilePath>
+    <VintageStudioTargetsFilePath Condition="'$(VintageStudioTargetsFilePath)' == '' AND Exists('$(LocalAppData)\Microsoft\VisualStudio\10.0Exp\Extensions\Pawel Kadluczka\Vintage Studio\1.0')">$([System.IO.Directory]::GetFiles('$(LocalAppData)\Microsoft\VisualStudio\10.0Exp\Extensions\Pawel Kadluczka\Vintage Studio\1.0', 'VintageStudio.targets', System.IO.SearchOption.AllDirectories))</VintageStudioTargetsFilePath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Default' ">
+    <OutputPath>bin\</OutputPath>
+    <OutputFileName>$(Name).prg</OutputFileName>
+    <EmulatorPath>x64.exe</EmulatorPath>
+    <EmulatorRunArguments>-autostart "$(MSBuildProjectDirectory)\$(OutputPath)$(OutputFileName)" -VICIIdsize +confirmexit</EmulatorRunArguments>
+    <EmulatorDebugArguments>-autostart "$(MSBuildProjectDirectory)\$(OutputPath)$(OutputFileName)" -VICIIdsize +confirmexit -initbreak 4096</EmulatorDebugArguments>
+    <CompilerOutput>$(OutputPath)$(OutputFileName)</CompilerOutput>
+    <CompilerPath>64tass.exe</CompilerPath>
+    <CompileCommand>$(CompilerPath) -o "$(CompilerOutput)" @(Compile)</CompileCommand>
+    <CustomErrorRegularExpression>(?&lt;File&gt;^.+\..+):(?&lt;Line&gt;\d+): (?&lt;Message&gt;.+)</CustomErrorRegularExpression>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Main.asm">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Launcher.asm" />
+  </ItemGroup>
+  <Import Project="$(VintageStudioTargetsFilePath)" />
+</Project>
