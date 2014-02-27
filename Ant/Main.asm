@@ -34,8 +34,8 @@ resetscreenmem          sta ($fa),y         ; Store in fb,fa location+y
                         lda #$ff            ; just putting some white for testing 
                         ldx #$00
 loop                    dex 
-                        sta $3100,x S
+                        sta $3100,x
                         jmp loop
 forever                 jmp forever         ; basic messes up memory space 
                         rts 
-                        .include "Launcher.asm"
+.include "Launcher.asm"
