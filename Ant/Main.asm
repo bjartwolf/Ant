@@ -30,12 +30,24 @@ resetscreenmem          sta ($fa),y         ; Store in fb,fa location+y
                         ; TODO 
                         ; x and y positions  
                         ; multiplication 16 bit  
-                        ; move 
-                        lda #$ff            ; just putting some white for testing 
-                        ldx #$00
-loop                    dex 
-                        sta $3100,x
-                        jmp loop
+                        ; move  
+                        ; x-position is 0-320 stored in f0 and f1, 160 is a0
+                        lda #$a0			; LSB of position for 160
+                        sta $f0				; store lsb of x position
+                        lda #$00            ; MSB of x position for 160
+                        sta $f1             ; store msb of x position 
+						; y position is 0-200 stored in f2
+                        lda #$64             ; y position 100 
+                        sta $f2             ; store y position 
+                        lda #$a4             ;lsb of start position  
+                        sta $f3				; store lsb of start position
+                        lda #$2f			; msb of 2fa4
+                        sta $f4				; store msb in f4
+                        lda #$80            ; middle bit on 
+						ldy #$00
+						sta ($f3),y         ; not sure how to do without index
+                        ;draw initial position 
+						;must calculate location and bit flags for x and y positions						
 forever                 jmp forever         ; basic messes up memory space 
                         rts 
 .include "Launcher.asm"
