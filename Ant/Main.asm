@@ -35,7 +35,9 @@ resetscreenmem          sta ($fa),y         ; Store in fb,fa location+y
                         ; y position is 0-200 stored in f2    
                         lda #$64            ; y position 100     
                         sta $f2             ; store y position     
-
+                        ; store dir in f3 
+                        lda #$00 ; dir 0
+						sta $f3
                         ; store char*8 = 8*int(x/8) in e0 and e1    
 loop                    lda $f1             ;msb of x  
                         sta $e1             ;don't need to do anything with this   
@@ -129,16 +131,60 @@ storebitflag            sta $e8
                         ; saved position    
                         ; flip color by xor with bit   
                         lda $e8             ; load bit flag for which bit to turn on    
-                        ;lda #$fe 
                         ldy #$00            ; not sure how to do without index   
-                        ora ($ea),y         ; use eor to flip...?  
+                        eor ($ea),y         ; use eor to flip value
+                        ; check if current position is set or not, incx or y 
                         sta ($ea),y 
-                        inc $f0             ; inc x lsb   
-                        beq finished
-                        dec $f2             ; inx y   
-                        beq finished
+						and $e8             ; only check current bit  
+                        cmp #$00			; check if black now
+                        bne white           ; go to white if not equal(double check logic after three beers) 
+                        ; assume black 
+                        inc $f3
+                        lda #$04
+						cmp	$f3;check 
+						beq wrappos
+						jmp right
+wrappos                 lda #$00
+                        sta $f3	     		;is right
+						jmp right
+white                   dec $f3
+                        lda #$ff
+						cmp $f3
+						beq wrapneg		   ; if less than zero   
+						jmp left
+wrapneg                 lda #$03
+						sta $f3			; set to 03 if negative
+						jmp down
+checkdir				lda #$00
+						cmp $f3
+                        beq right
+						lda #$01
+                        cmp $f3
+                        beq up
+						lda #$02
+                        cmp $f3
+                        beq left
+						lda #$03
+                        cmp $f3
+                        beq down
+right                   inc $f0
+                        lda #$00
+						cmp $f0
+                        beq incmsb          ; jmp back if not wrapped to zero 
+						jmp loop
+incmsb                  inc $f1  ; if carry add one to msb
                         jmp loop
-
+up                      inc $f2
+                        jmp loop
+down                    dec $f2
+                        jmp loop
+left                    dec $f0             
+                        lda #$ff
+						cmp $f0
+                        beq decmsb
+						jmp loop
+decmsb					dec $f1
+						jmp loop
 finished                jmp finished
                         rts 
                         .include "Launcher.asm"
