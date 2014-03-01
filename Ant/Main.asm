@@ -143,18 +143,18 @@ storebitflag            sta $e8
                         lda #$04
 						cmp	$f3;check 
 						beq wrappos
-						jmp right
+						jmp checkdir
 wrappos                 lda #$00
                         sta $f3	     		;is right
-						jmp right
+						jmp checkdir
 white                   dec $f3
                         lda #$ff
 						cmp $f3
 						beq wrapneg		   ; if less than zero   
-						jmp left
+						jmp checkdir
 wrapneg                 lda #$03
 						sta $f3			; set to 03 if negative
-						jmp down
+						jmp checkdir
 checkdir				lda #$00
 						cmp $f3
                         beq right
