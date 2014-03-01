@@ -39,24 +39,24 @@ resetscreenmem          sta ($fa),y         ; Store in fb,fa location+y
                         ; y position is 0-200 stored in f2  
                         lda #$64            ; y position 100   
                         sta $f2             ; store y position   
-                        lda #$a4            ;lsb of start position    
-                        sta $f3             ; store lsb of start position  
-                        lda #$2f            ; msb of 2fa4  
-                        sta $f4             ; store msb in f4  
-                        lda #$80            ; middle bit on 
-                        ldy #$00
-                        sta ($f3),y         ; not sure how to do without index   
+;                        lda #$a4            ; lsb of start position    
+;                        sta $f3             ; store lsb of start position  
+;                        lda #$2f            ; msb of 2fa4  
+;                        sta $f4             ; store msb in f4  
+;                        lda #$80            ; middle bit on 
+;                        ldy #$00
+;                        sta ($f3),y         ; not sure how to do without index   
 
                         ; store char*8 = 8*int(x/8) in e0 and e1  
-loop                    lda $f1             ;msb of x 
+loop                    lda $f1             ;msb of x
                         sta $e1             ;don't need to do anything with this 
-                        lda $f2             ;lsb of x  
+                        lda $f0             ;lsb of x  
                         and #$f8            ;ignore three last bits - 8*int(x/8)  
                         sta $e0             ;save lsb's  
 
                         ; calculate y and 7 (line) and store in e2-e3 
                         lda $f2
-                        and #7
+                        and #$07
                         sta $e2             ;lsb 
                         lda #$00
                         sta $e3             ;msb   
@@ -64,20 +64,33 @@ loop                    lda $f1             ;msb of x
                         ; calculate 320*int(y/8) 
                         ; which is 40*(y&f8) or 8*(y&f8)+32*(y&f8)  
                         ; and store in locations e4-e5 and e6-e7 
-                        ldy $f2
+                        lda $f2
                         and #$f8            ; y&f8 
-                        clc                 ; clear accumulator before rotate  
-                        rol                 ; multiply by two  
-                        rol                 ; multiply by two, is max 40 so can rotate two times without overflow  
-                        rol                 ; this might set the carry  
-                        sta $e4             ; store lsb of 8*...   
-                        sta $e6
-                        lda #$00            ; clear msb  
-                        rol                 ; rotate in lsb if carry was set  
-                        sta $e5             ; store msb  
-                        sta $e7
-                        rol $e6             ; multiply lsb by 2, carry cleared from rotate of 0 
-                        rol $e7             ; multiply msb by 2, rotate in carry in e7  
+                        clc                 ; clear carry before rotate  
+                        rol                 ; multiply by two 
+                        sta $e4             ; store lsb 
+                        lda #$00            ; clear lsb 
+                        rol                 ; rotate in carry 
+                        sta $e5             ; store msb 
+                        clc                 ; clear carry 
+                        lda $e4             ; 
+                        rol                 ; multiply by four  
+                        sta $e4             ; save lsb 
+                        lda $e5             ; load msb 
+                        rol                 ; rotate in carry 
+                        clc                 ; clear carry  
+			            lda $e4             ; 
+                        rol                 ; multiply by eight
+                        sta $e4             ; save lsb  
+						sta $e6				; save msb for 32 multiplication
+                        lda $e5             ; load msb 
+                        rol                 ; rotate in carry  
+						sta $e5				; save msb
+						sta $e7				; save msb for 32 multiplication
+						clc                 ; clear carry 
+                        rol $e6             ; multiply lsb by 2 to 16
+                        rol $e7             ; multiply msb by 2, rotate in carry
+						clc					; clear carry
                         rol $e6             ; multiply lsb by 2, 32 total now 
                         rol $e7             ; multiply msb by 2, 32 total now 
 
@@ -131,11 +144,14 @@ storebitflag            sta $e8
                         ; flip color by xor with bit 
                         lda $e8             ; load bit flag for which bit to turn on  
                         ldy #$00            ; not sure how to do without index 
-                        eor ($ea),y 
+                        ora ($ea),y			; use eor to flip...?
                         sta ($ea),y 
                         inc $f0             ; inc x lsb 
-                        inc $f2             ; inx y 
+						beq finished
+						dec $f2             ; inx y 
+						beq finished
                         jmp loop
 
-                        rts 
+finished				jmp finished
+						rts						
                         .include "Launcher.asm"
