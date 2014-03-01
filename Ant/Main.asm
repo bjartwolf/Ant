@@ -1,141 +1,141 @@
                         * = $1000
 start
-                        lda #$3b            ; Bit 5 on (some use 10x59 x3b)  
-                        sta $d011           ; Reg 17 Bit 5 enable high res    
-                        lda #$18            ; Point to high res memory map   
-                        sta $d018           ; Reg 24     
-                        lda #$f0            ; msb nybble is on color, lsb is off  
-                        ldy #$00            ; Counter count down from 0 and loop  
-resetcolor              sta $0400,y         ; Easier and faster than using 16 bit adressing  
+                        lda #$3b            ; Bit 5 on (some use 10x59 x3b)   
+                        sta $d011           ; Reg 17 Bit 5 enable high res     
+                        lda #$18            ; Point to high res memory map    
+                        sta $d018           ; Reg 24      
+                        lda #$f0            ; msb nybble is on color, lsb is off   
+                        ldy #$00            ; Counter count down from 0 and loop   
+resetcolor              sta $0400,y         ; Easier and faster than using 16 bit adressing   
                         sta $0500,y 
                         sta $0600,y 
                         sta $0700,y 
                         dey 
                         bne resetcolor
 
-                        lda #$00            ; LSB of 2000   
-                        sta $fa             ; store LSB in zero page location fa  
-                        lda #$20            ; MSB of 2000   
-                        sta $fb             ; store MSB in zero page location fb  
-                        lda #$00            ; turn all bits in bitmap off  
-                        ldy #$00            ; clear y (iterator)		  
-resetscreenmem          sta ($fa),y         ; Store in fb,fa location+y  
+                        lda #$00            ; LSB of 2000    
+                        sta $fa             ; store LSB in zero page location fa   
+                        lda #$20            ; MSB of 2000    
+                        sta $fb             ; store MSB in zero page location fb   
+                        lda #$00            ; turn all bits in bitmap off   
+                        ldy #$00            ; clear y (iterator)		   
+resetscreenmem          sta ($fa),y         ; Store in fb,fa location+y   
                         iny 
                         bne resetscreenmem
-                        ldx $fb             ; load msb of loop range  
-                        inx                ; inx   
-                        stx $fb             ; save stored value back  
-                        cpx #$40            ; we count to 3fff (I think, if we count to far it is only sprite memory I think)    
+                        ldx $fb             ; load msb of loop range   
+                        inx                 ; inx    
+                        stx $fb             ; save stored value back   
+                        cpx #$40            ; we count to 3fff (I think, if we count to far it is only sprite memory I think)     
                         bne resetscreenmem
-                        ; TODO  
-                        ; x and y positions   
-                        ; multiplication 16 bit   
-                        ; move   
-                        ; x-position is 0-320 stored in f0 and f1, 160 is a0 
-		                lda #$a0            ; LSB of position for 160 
-                        sta $f0             ; store lsb of x position 
-                        lda #$00            ; MSB of x position for 160 
-                        sta $f1             ; store msb of x position  
-                        ; y position is 0-200 stored in f2 
-                        lda #$64            ; y position 100  
-                        sta $f2             ; store y position  
-                        lda #$a4            ;lsb of start position   
-                        sta $f3             ; store lsb of start position 
-                        lda #$2f            ; msb of 2fa4 
-                        sta $f4             ; store msb in f4 
-                        lda #$80            ; middle bit on
+                        ; TODO   
+                        ; x and y positions    
+                        ; multiplication 16 bit    
+                        ; move    
+                        ; x-position is 0-320 stored in f0 and f1, 160 is a0  
+                        lda #$a0            ; LSB of position for 160  
+                        sta $f0             ; store lsb of x position  
+                        lda #$00            ; MSB of x position for 160  
+                        sta $f1             ; store msb of x position   
+                        ; y position is 0-200 stored in f2  
+                        lda #$64            ; y position 100   
+                        sta $f2             ; store y position   
+                        lda #$a4            ;lsb of start position    
+                        sta $f3             ; store lsb of start position  
+                        lda #$2f            ; msb of 2fa4  
+                        sta $f4             ; store msb in f4  
+                        lda #$80            ; middle bit on 
                         ldy #$00
-                        sta ($f3),y         ; not sure how to do without index  
+                        sta ($f3),y         ; not sure how to do without index   
 
-                        ; store char*8 = 8*int(x/8) in e0 and e1 
-loop                    lda $f1				;msb of x
-						sta $e1				;don't need to do anything with this
-                        lda $f2             ;lsb of x 
-                        and #$f8            ;ignore three last bits - 8*int(x/8) 
-                        sta $e0             ;save lsb's 
+                        ; store char*8 = 8*int(x/8) in e0 and e1  
+loop                    lda $f1             ;msb of x 
+                        sta $e1             ;don't need to do anything with this 
+                        lda $f2             ;lsb of x  
+                        and #$f8            ;ignore three last bits - 8*int(x/8)  
+                        sta $e0             ;save lsb's  
 
-                        ; calculate y and 7 (line) and store in e2-e3
+                        ; calculate y and 7 (line) and store in e2-e3 
                         lda $f2
-                        and #7 
-                        sta $e2   ;lsb
+                        and #7
+                        sta $e2             ;lsb 
                         lda #$00
-                        sta $e3             ;msb  
+                        sta $e3             ;msb   
 
-                        ; calculate 320*int(y/8)
-                        ; which is 40*(y&f8) or 8*(y&f8)+32*(y&f8) 
-						; and store in locations e4-e5 and e6-e7
+                        ; calculate 320*int(y/8) 
+                        ; which is 40*(y&f8) or 8*(y&f8)+32*(y&f8)  
+                        ; and store in locations e4-e5 and e6-e7 
                         ldy $f2
-                        and #$f8 ; y&f8
-                        clc                 ; clear accumulator before rotate 
-                        rol                 ; multiply by two 
-                        rol                 ; multiply by two, is max 40 so can rotate two times without overflow 
-                        rol                 ; this might set the carry 
-                        sta $e4             ; store lsb of 8*...  
-						sta $e6
-                        lda #$00            ; clear msb 
-                        rol                 ; rotate in lsb if carry was set 
-                        sta $e5             ; store msb 
+                        and #$f8            ; y&f8 
+                        clc                 ; clear accumulator before rotate  
+                        rol                 ; multiply by two  
+                        rol                 ; multiply by two, is max 40 so can rotate two times without overflow  
+                        rol                 ; this might set the carry  
+                        sta $e4             ; store lsb of 8*...   
+                        sta $e6
+                        lda #$00            ; clear msb  
+                        rol                 ; rotate in lsb if carry was set  
+                        sta $e5             ; store msb  
                         sta $e7
-						rol $e6				; multiply lsb by 2, carry cleared from rotate of 0
-                        rol $e7             ; multiply msb by 2, rotate in carry in e7 
-                        rol $e6				; multiply lsb by 2, 32 total now
-						rol $e7				; multiply msb by 2, 32 total now
+                        rol $e6             ; multiply lsb by 2, carry cleared from rotate of 0 
+                        rol $e7             ; multiply msb by 2, rotate in carry in e7  
+                        rol $e6             ; multiply lsb by 2, 32 total now 
+                        rol $e7             ; multiply msb by 2, 32 total now 
 
-                        ; find bit - last 8 values of x and store flag in e8
-                        lda $f0             ; x lsb 
-                        and #$07            ; only three last values 
-						tax					; x as iterator
-                        lda #$00            ; clear a
-			            cpx #$00            ; is iterator 0? 
-                        beq storebitflag    ; if it is equal continue
-                        lda #$80            ; 100000000 
-movebitflag1			dex
-						beq storebitflag	; if x is 0 continue
-                        clc                 ;clear carry 
-                        ror					;rotate bitflag 1
-						jmp movebitflag1
+                        ; find bit - last 8 values of x and store flag in e8 
+                        lda $f0             ; x lsb  
+                        and #$07            ; only three last values  
+                        tax                 ; x as iterator 
+                        lda #$00            ; clear a 
+                        cpx #$00            ; is iterator 0?  
+                        beq storebitflag    ; if it is equal continue 
+                        lda #$80            ; 100000000  
+movebitflag1            dex 
+                        beq storebitflag    ; if x is 0 continue 
+                        clc                 ;clear carry  
+                        ror                 ;rotate bitflag 1 
+                        jmp movebitflag1
 storebitflag            sta $e8
 
-                        ; 16 bit summation 
-                        ; must sum base+row*320+char*8+line  and store in eab
-						; which is 2000+e45+e67+e01+e23
-                        clc                 ;clear carry 
-                        lda #$00            ;lsb of base 
-						adc $e0
-                        sta $ea ;store lsb
-                        lda #$20            ;msb of base 
-						adc $e1
-                        sta $eb ;store msb
-                        clc                 ; clear carry for next round 
+                        ; 16 bit summation  
+                        ; must sum base+row*320+char*8+line  and store in eab 
+                        ; which is 2000+e45+e67+e01+e23 
+                        clc                 ;clear carry  
+                        lda #$00            ;lsb of base  
+                        adc $e0
+                        sta $ea             ;store lsb 
+                        lda #$20            ;msb of base  
+                        adc $e1
+                        sta $eb             ;store msb 
+                        clc                 ; clear carry for next round  
                         lda $ea
-						adc $e2
-                        sta $ea             ; save result back 
+                        adc $e2
+                        sta $ea             ; save result back  
                         lda $eb
-						adc $e3
+                        adc $e3
                         sta $eb
                         clc 
                         lda $ea
-						adc $e4
+                        adc $e4
                         sta $ea
                         lda $eb
-						adc $e5
+                        adc $e5
                         sta $eb
                         clc 
                         lda $ea
-						adc $e6
+                        adc $e6
                         sta $ea
                         lda $eb
-						adc $e7
+                        adc $e7
                         sta $eb
-                        ; saved position 
-						; flip color by xor with bit
-                        lda $e8             ; load bit flag for which bit to turn on 
-						ldy #$00 ; not sure how to do without index
-						eor ($ea),y
-                        sta ($ea),y
-                        inc $f0 ; inc x lsb
-						inc $f2 ; inx y
-						jmp loop
+                        ; saved position  
+                        ; flip color by xor with bit 
+                        lda $e8             ; load bit flag for which bit to turn on  
+                        ldy #$00            ; not sure how to do without index 
+                        eor ($ea),y 
+                        sta ($ea),y 
+                        inc $f0             ; inc x lsb 
+                        inc $f2             ; inx y 
+                        jmp loop
 
                         rts 
                         .include "Launcher.asm"
