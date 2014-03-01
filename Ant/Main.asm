@@ -27,10 +27,6 @@ resetscreenmem          sta ($fa),y         ; Store in fb,fa location+y
                         stx $fb             ; save stored value back    
                         cpx #$40            ; we count to 3fff (I think, if we count to far it is only sprite memory I think)      
                         bne resetscreenmem
-                        ; TODO    
-                        ; x and y positions     
-                        ; multiplication 16 bit     
-                        ; move     
                         ; x-position is 0-320 stored in f0 and f1, 160 is a0   
                         lda #$a0            ; LSB of position for 160   
                         sta $f0             ; store lsb of x position   
@@ -39,13 +35,6 @@ resetscreenmem          sta ($fa),y         ; Store in fb,fa location+y
                         ; y position is 0-200 stored in f2   
                         lda #$64            ; y position 100    
                         sta $f2             ; store y position    
-;                        lda #$a4            ; lsb of start position     
-;                        sta $f3             ; store lsb of start position   
-;                        lda #$2f            ; msb of 2fa4   
-;                        sta $f4             ; store msb in f4   
-;                        lda #$80            ; middle bit on  
-;                        ldy #$00 
-;                        sta ($f3),y         ; not sure how to do without index    
 
                         ; store char*8 = 8*int(x/8) in e0 and e1   
 loop                    lda $f1             ;msb of x 
@@ -98,15 +87,12 @@ loop                    lda $f1             ;msb of x
                         lda $f0             ; x lsb   
                         and #$07            ; only three last values   
                         tax                 ; x as iterator  
-                        lda #$00            ; clear a  
-                        cpx #$00            ; is iterator 0?   
-                        beq storebitflag    ; if it is equal continue  
-                        lda #$80            ; 100000000   
-movebitflag1            dex 
-                        beq storebitflag    ; if x is 0 continue  
-                        clc                 ;clear carry   
-                        ror                 ;rotate bitflag 1  
-                        jmp movebitflag1
+                        lda #$00            ; set 00000000 
+						sec					; set carry
+movebitflag1			ror
+                        dex 
+						bmi storebitflag
+                        jmp movebitflag1    ; if x is 0 continue  
 storebitflag            sta $e8
 
                         ; 16 bit summation   
@@ -143,7 +129,8 @@ storebitflag            sta $e8
                         ; saved position   
                         ; flip color by xor with bit  
                         lda $e8             ; load bit flag for which bit to turn on   
-                        ldy #$00            ; not sure how to do without index  
+						;lda #$fe
+						ldy #$00            ; not sure how to do without index  
                         ora ($ea),y         ; use eor to flip...? 
                         sta ($ea),y 
                         inc $f0             ; inc x lsb  
