@@ -4,12 +4,16 @@ baseLSB = #$00
 videoadrLSB = $fa
 videoadrMSB = $fb
 regbase = $d000
-whiteblack = #xLSB
+whiteblack = #$f0
 videocolorbase = $0400
 xLSB = $f0                                  ; current x position 
 xMSB = $f1
 y = $f2                                     ; current y position 
-dir = $f3									; ant dir, 0=left, 1=up, 2=right,3=down
+dir = $f3									; ant dir
+right = #0
+up = #1
+left = #2
+down = #3
 
 start                   ; Configure HI RES display 
                         lda #$3b            ; Bit 5 on        
@@ -172,19 +176,19 @@ white                   dec dir
 wrapneg                 lda #$03
                         sta dir             ; set to 03 if negative   
                         jmp checkdir
-checkdir                lda #0
+checkdir                lda right
                         cmp dir
-                        beq right
-                        lda #$01
+                        beq goright
+                        lda up
                         cmp dir
-                        beq up
-                        lda #$02
+                        beq goup
+                        lda left
                         cmp dir
-                        beq left
-                        lda #$03
+                        beq goleft
+                        lda down
                         cmp dir
-                        beq down
-right                   inc xLSB
+                        beq godown
+goright                   inc xLSB
                         lda #0
                         cmp xLSB
                         beq incmsb          ; jmp back if not wrapped to zero    
@@ -192,15 +196,15 @@ right                   inc xLSB
 incmsb                  inc xMSB
                         ; if carry add one to msb   
                         jmp loop
-up                      ldx y
+goup                      ldx y
                         inx 
                         stx y
                         jmp loop
-down                    ldx y
+godown                    ldx y
                         dex 
                         stx y
                         jmp loop
-left                    dec xLSB
+goleft                    dec xLSB
                         lda #$ff
                         cmp xLSB
                         beq decmsb
