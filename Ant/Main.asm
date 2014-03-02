@@ -1,4 +1,8 @@
                         * = $1000
+baseMSB = #$20
+baseLSB = #$00
+videoadrLSB = $fa
+videoadrMSB = $fb
 start
                         lda #$3b            ; Bit 5 on (some use 10x59 x3b)       
                         sta $d011           ; Reg 17 Bit 5 enable high res         
@@ -13,11 +17,11 @@ resetcolor              sta $0400,y         ; Easier and faster than using 16 bi
                         dey 
                         bne resetcolor
 
-                        lda #$00            ; LSB of 2000        
-                        sta $fa             ; store LSB in zero page location fa       
-                        lda #$20            ; MSB of 2000        
-                        sta $fb             ; store MSB in zero page location fb       
-                        lda #$00            ; turn all bits in bitmap off       
+						lda baseLSB
+                        sta videoadrLSB
+                        lda baseMSB
+						sta videoadrMSB
+				        lda #$00            ; turn all bits in bitmap off       
                         ldy #$00            ; clear y (iterator)		       
 resetscreenmem          sta ($fa),y         ; Store in fb,fa location+y       
                         iny 
