@@ -3,9 +3,10 @@ baseMSB = #$20
 baseLSB = #$00
 videoadrLSB = $fa
 videoadrMSB = $fb
+reg17 = $d011
 start
-                        lda #$3b            ; Bit 5 on (some use 10x59 x3b)       
-                        sta $d011           ; Reg 17 Bit 5 enable high res         
+                        lda #$3b            ; Bit 5 on       
+                        sta reg17           ; Reg 17 Bit 5 enable high res         
                         lda #$18            ; Point to high res memory map        
                         sta $d018           ; Reg 24          
                         lda #$f0            ; msb nybble is on color, lsb is off       
