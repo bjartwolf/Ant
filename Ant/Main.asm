@@ -21,8 +21,8 @@ resetcolor              sta $0400,y         ; Easier and faster than using 16 bi
                         sta videoadrLSB
                         lda baseMSB
 						sta videoadrMSB
-				        lda #$00            ; turn all bits in bitmap off       
-                        ldy #$00            ; clear y (iterator)		       
+				        lda #0            ; turn all bits in bitmap off       
+                        ldy #0            ; clear y (iterator)		       
 resetscreenmem          sta ($fa),y         ; Store in fb,fa location+y       
                         iny 
                         bne resetscreenmem
