@@ -34,13 +34,13 @@ resetscreenmem          sta ($fa),y         ; Store in fb,fa location+y
                         ; x-position is 0-320 stored in f0 and f1, 160 is a0      
                         lda #$a0            ; LSB of position for 160      
                         sta $f0             ; store lsb of x position      
-                        lda #$00            ; MSB of x position for 160      
+                        lda #0            ; MSB of x position for 160      
                         sta $f1             ; store msb of x position       
                         ; y position is 0-200 stored in f2      
                         lda #$64            ; y position 100       
                         sta $f2             ; store y position       
                         ; store dir in f3   
-                        lda #$00            ; dir 0  
+                        lda #0            ; dir 0  
                         sta $f3
                         ; store char*8 = 8*int(x/8) in e0 and e1      
 loop                    lda $f1             ;msb of x    
@@ -53,7 +53,7 @@ loop                    lda $f1             ;msb of x
                         lda $f2
                         and #$07
                         sta $e2             ;lsb     
-                        lda #$00
+                        lda #0
                         sta $e3             ;msb       
 
                         ; calculate 320*int(y/8)     
@@ -64,7 +64,7 @@ loop                    lda $f1             ;msb of x
                         clc                 ; clear carry before rotate      
                         rol                 ; multiply by two     
                         sta $e4             ; store lsb     
-                        lda #$00            ; clear lsb     
+                        lda #0            ; clear lsb     
                         rol                 ; rotate in carry     
                         sta $e5             ; store msb     
                         clc                 ; clear carry     
@@ -93,7 +93,7 @@ loop                    lda $f1             ;msb of x
                         lda $f0             ; x lsb      
                         and #$07            ; only three last values      
                         tax                 ; x as iterator     
-                        lda #$00            ; set 00000000    
+                        lda #0            ; set 00000000    
                         sec                 ; set carry   
 movebitflag1            ror 
                         dex 
@@ -105,10 +105,10 @@ storebitflag            sta $e8
                         ; must sum base+row*320+char*8+line  and store in eab     
                         ; which is 2000+e45+e67+e01+e23     
                         clc                 ;clear carry      
-                        lda #$00            ;lsb of base      
+                        lda baseLSB            ;lsb of base      
                         adc $e0
                         sta $ea             ;store lsb     
-                        lda #$20            ;msb of base      
+                        lda baseMSB            ;msb of base      
                         adc $e1
                         sta $eb             ;store msb     
                         clc                 ; clear carry for next round      
@@ -135,12 +135,12 @@ storebitflag            sta $e8
                         ; saved position      
                         ; flip color by xor with bit     
                         lda $e8             ; load bit flag for which bit to turn on      
-                        ldy #$00            ; not sure how to do without index     
+                        ldy #0            ; not sure how to do without index     
                         eor ($ea),y         ; use eor to flip value  
                         ; check if current position is set or not, incx or y   
                         sta ($ea),y 
                         and $e8             ; only check current bit    
-                        cmp #$00            ; check if black now  
+                        cmp #0            ; check if black now  
                         bne white           ; go to white if not equal(double check logic after three beers)   
                         ; assume black   
                         inc $f3
@@ -148,7 +148,7 @@ storebitflag            sta $e8
                         cmp $f3             ;check   
                         beq wrappos
                         jmp checkdir
-wrappos                 lda #$00
+wrappos                 lda #0
                         sta $f3             ;is right  
                         jmp checkdir
 white                   dec $f3
@@ -159,7 +159,7 @@ white                   dec $f3
 wrapneg                 lda #$03
                         sta $f3             ; set to 03 if negative  
                         jmp checkdir
-checkdir                lda #$00
+checkdir                lda #0
                         cmp $f3
                         beq right
                         lda #$01
@@ -172,7 +172,7 @@ checkdir                lda #$00
                         cmp $f3
                         beq down
 right                   inc $f0
-                        lda #$00
+                        lda #0
                         cmp $f0
                         beq incmsb          ; jmp back if not wrapped to zero   
                         jmp loop
