@@ -6,6 +6,9 @@ videoadrMSB = $fb
 regbase = $d000
 whiteblack = #$f0
 videocolorbase = $0400
+xLSB = $f0
+xMSB = $f1
+y = $f2
 start
                         lda #$3b            ; Bit 5 on       
                         sta regbase+17           ; Reg 17 Bit 5 enable high res         
@@ -17,7 +20,7 @@ resetcolor              sta videocolorbase,y         ; Easier and faster than us
                         sta videocolorbase+$100,y 
                         sta videocolorbase+$200,y 
                         sta videocolorbase+$300,y 
-                        dey 
+                        dey ;starts with zero so wraps around first to ff
                         bne resetcolor
 
 						lda baseLSB
@@ -26,12 +29,12 @@ resetcolor              sta videocolorbase,y         ; Easier and faster than us
 						sta videoadrMSB
 				        lda #0            ; turn all bits in bitmap off       
                         ldy #0            ; clear y (iterator)		       
-resetscreenmem          sta ($fa),y         ; Store in fb,fa location+y       
+resetscreenmem          sta (videoadrLSB),y         ; Store in fb,fa location+y       
                         iny 
                         bne resetscreenmem
-                        ldx $fb             ; load msb of loop range       
+                        ldx videoadrMSB             ; load msb of loop range       
                         inx                 ; inx        
-                        stx $fb             ; save stored value back       
+                        stx videoadrMSB            ; save stored value back       
                         cpx #$40            ; we count to 3fff (I think, if we count to far it is only sprite memory I think)         
                         bne resetscreenmem
                         ; x-position is 0-320 stored in f0 and f1, 160 is a0      
@@ -41,7 +44,7 @@ resetscreenmem          sta ($fa),y         ; Store in fb,fa location+y
                         sta $f1             ; store msb of x position       
                         ; y position is 0-200 stored in f2      
                         lda #$64            ; y position 100       
-                        sta $f2             ; store y position       
+                        sta y             ; store y position       
                         ; store dir in f3   
                         lda #0            ; dir 0  
                         sta $f3
@@ -53,7 +56,7 @@ loop                    lda $f1             ;msb of x
                         sta $e0             ;save lsb's      
 
                         ; calculate y and 7 (line) and store in e2-e3     
-                        lda $f2
+                        lda y
                         and #$07
                         sta $e2             ;lsb     
                         lda #0
@@ -62,7 +65,7 @@ loop                    lda $f1             ;msb of x
                         ; calculate 320*int(y/8)     
                         ; which is 40*(y&f8) or 8*(y&f8)+32*(y&f8)      
                         ; and store in locations e4-e5 and e6-e7     
-                        lda $f2
+                        lda y
                         and #$f8            ; y&f8     
                         clc                 ; clear carry before rotate      
                         rol                 ; multiply by two     
@@ -182,13 +185,13 @@ right                   inc $f0
 incmsb                  inc $f1
                         ; if carry add one to msb  
                         jmp loop
-up                      ldx $f2
+up                      ldx y
                         inx 
-                        stx $f2
+                        stx y
                         jmp loop
-down                    ldx $f2
+down                    ldx y
                         dex 
-                        stx $f2
+                        stx y
                         jmp loop
 left                    dec $f0
                         lda #$ff
