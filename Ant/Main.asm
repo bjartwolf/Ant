@@ -3,12 +3,12 @@ baseMSB = #$20
 baseLSB = #$00
 videoadrLSB = $fa
 videoadrMSB = $fb
-reg17 = $d011
+regbase = $d000
 start
                         lda #$3b            ; Bit 5 on       
-                        sta reg17           ; Reg 17 Bit 5 enable high res         
+                        sta regbase+17           ; Reg 17 Bit 5 enable high res         
                         lda #$18            ; Point to high res memory map        
-                        sta $d018           ; Reg 24          
+                        sta regbase+24           ; Reg 24          
                         lda #$f0            ; msb nybble is on color, lsb is off       
                         ldy #$00            ; Counter count down from 0 and loop       
 resetcolor              sta $0400,y         ; Easier and faster than using 16 bit adressing       
