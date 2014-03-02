@@ -62,19 +62,27 @@ resetscreenmem          sta (videoadrLSB),y  ; Store in fb,fa location+y
                         ; store dir in f3     
                         lda #0              ; dir 0    
                         sta dir
-                        ; store char*8 = 8*int(x/8) in e0 and e1        
-loop                    lda xMSB            ;msb of x      
-                        sta $e1             ;don't need to do anything with this       
-                        lda xLSB            ;lsb of x        
+                        ; store char*8 = 8*int(x/8) on top of base         
+loop					clc
+						lda xLSB            ;lsb of x        
                         and #$f8            ;ignore three last bits - 8*int(x/8)        
-                        sta $e0             ;save lsb's        
+                        adc baseLSB         
+                        sta scrMemLSB             ;store lsb       
+                        lda baseMSB         ;msb of base        
+                        adc xMSB
+                        sta scrMemMSB             ;store msb       
 
-                        ; calculate y and 7 (line) and store in e2-e3       
+
+                        ; calculate y and 7 (line) and add to scrMem 
+						clc
                         lda y
                         and #%111			;keep only last three bits
-                        sta $e2             ;lsb       
-                        lda #0
-                        sta $e3             ;msb         
+						adc scrMemLSB
+						sta scrMemLSB             ;lsb       
+                        lda scrMemMSB
+                        adc #0
+						sta scrMemMSB
+
 
                         ; calculate 320*int(y/8)       
                         ; which is 40*(y&f8) or 8*(y&f8)+32*(y&f8)        
@@ -124,20 +132,6 @@ storebitflag            sta scrBitFlag
                         ; 16 bit summation        
                         ; must sum base+row*320+char*8+line  and store in eab       
                         ; which is 2000+e45+e67+e01+e23       
-                        clc                 ;clear carry        
-                        lda baseLSB         ;lsb of base        
-                        adc $e0
-                        sta scrMemLSB             ;store lsb       
-                        lda baseMSB         ;msb of base        
-                        adc $e1
-                        sta scrMemMSB             ;store msb       
-                        clc                 ; clear carry for next round        
-                        lda scrMemLSB
-                        adc $e2
-                        sta scrMemLSB             ; save result back        
-                        lda scrMemMSB
-                        adc $e3
-                        sta scrMemMSB
                         clc 
                         lda scrMemLSB
                         adc $e4
