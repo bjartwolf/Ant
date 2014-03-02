@@ -14,6 +14,8 @@ right = #0
 up = #1
 left = #2
 down = #3
+scrMemLSB = $ea
+scrMemMSB = $eb
 
 start                   ; Configure HI RES display  
                         lda #$3b            ; Bit 5 on         
@@ -124,48 +126,48 @@ storebitflag            sta $e8
                         clc                 ;clear carry        
                         lda baseLSB         ;lsb of base        
                         adc $e0
-                        sta $ea             ;store lsb       
+                        sta scrMemLSB             ;store lsb       
                         lda baseMSB         ;msb of base        
                         adc $e1
-                        sta $eb             ;store msb       
+                        sta scrMemMSB             ;store msb       
                         clc                 ; clear carry for next round        
-                        lda $ea
+                        lda scrMemLSB
                         adc $e2
-                        sta $ea             ; save result back        
-                        lda $eb
+                        sta scrMemLSB             ; save result back        
+                        lda scrMemMSB
                         adc $e3
-                        sta $eb
+                        sta scrMemMSB
                         clc 
-                        lda $ea
+                        lda scrMemLSB
                         adc $e4
-                        sta $ea
-                        lda $eb
+                        sta scrMemLSB
+                        lda scrMemMSB
                         adc $e5
-                        sta $eb
+                        sta scrMemMSB
                         clc 
-                        lda $ea
+                        lda scrMemLSB
                         adc $e6
-                        sta $ea
-                        lda $eb
+                        sta scrMemLSB
+                        lda scrMemMSB
                         adc $e7
-                        sta $eb
+                        sta scrMemMSB
                         ; saved position        
                         ; flip color by xor with bit       
                         lda $e8             ; load bit flag for which bit to turn on        
                         ldy #0              ; not sure how to do without index       
-                        eor ($ea),y         ; use eor to flip value    
+                        eor (scrMemLSB),y         ; use eor to flip value    
                         ; check if current position is set or not, incx or y     
-                        sta ($ea),y 
+                        sta (scrMemLSB),y 
                         and $e8             ; only check current bit      
                         cmp #0              ; check if black now    
                         bne white           ; go to white if not equal(double check logic after three beers)     
                         ; assume black     
                         inc dir
-                        lda #$04
+                        lda #4
                         cmp dir             ;check     
                         beq wrappos
                         jmp checkdir
-wrappos                 lda #0
+wrappos                 lda right
                         sta dir             ;is right    
                         jmp checkdir
 white                   dec dir
@@ -173,7 +175,7 @@ white                   dec dir
                         cmp dir
                         beq wrapneg         ; if less than zero       
                         jmp checkdir
-wrapneg                 lda #$03
+wrapneg                 lda down
                         sta dir             ; set to 03 if negative    
                         jmp checkdir
 checkdir                lda right
