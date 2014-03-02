@@ -1,7 +1,7 @@
 Ant
 ===
 
-C64 Ant in 6502 Assembler
+C64 implementation of [Langton's Ant](http://en.wikipedia.org/wiki/Langton's_ant) in 6502 Assembler
 
 ![screenshot](https://raw.github.com/bjartwolf/Ant/master/screenshot.png)
 
