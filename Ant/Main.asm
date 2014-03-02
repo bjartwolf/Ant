@@ -16,6 +16,7 @@ left = #2
 down = #3
 scrMemLSB = $ea
 scrMemMSB = $eb
+scrBitFlag = $e8
 
 start                   ; Configure HI RES display  
                         lda #$3b            ; Bit 5 on         
@@ -70,7 +71,7 @@ loop                    lda xMSB            ;msb of x
 
                         ; calculate y and 7 (line) and store in e2-e3       
                         lda y
-                        and #$07
+                        and #%111			;keep only last three bits
                         sta $e2             ;lsb       
                         lda #0
                         sta $e3             ;msb         
@@ -110,7 +111,7 @@ loop                    lda xMSB            ;msb of x
                         rol $e7             ; multiply msb by 2, 32 total now       
                         ; find bit - last 8 values of x and store flag in e8       
                         lda xLSB            ; x lsb        
-                        and #$07            ; only three last values        
+                        and #%111            ; keep only three last values        
                         tax                 ; x as iterator       
                         lda #0              ; set 00000000      
                         sec                 ; set carry     
@@ -118,7 +119,7 @@ movebitflag1            ror
                         dex 
                         bmi storebitflag
                         jmp movebitflag1    ; if x is 0 continue       
-storebitflag            sta $e8
+storebitflag            sta scrBitFlag
 
                         ; 16 bit summation        
                         ; must sum base+row*320+char*8+line  and store in eab       
@@ -151,14 +152,13 @@ storebitflag            sta $e8
                         lda scrMemMSB
                         adc $e7
                         sta scrMemMSB
-                        ; saved position        
                         ; flip color by xor with bit       
-                        lda $e8             ; load bit flag for which bit to turn on        
+                        lda scrBitFlag             ; load bit flag for which bit to turn on        
                         ldy #0              ; not sure how to do without index       
                         eor (scrMemLSB),y         ; use eor to flip value    
                         ; check if current position is set or not, incx or y     
                         sta (scrMemLSB),y 
-                        and $e8             ; only check current bit      
+                        and scrBitFlag             ; only check current bit      
                         cmp #0              ; check if black now    
                         bne white           ; go to white if not equal(double check logic after three beers)     
                         ; assume black     
