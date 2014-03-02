@@ -9,6 +9,7 @@ videocolorbase = $0400
 xLSB = $f0                                  ; current x position 
 xMSB = $f1
 y = $f2                                     ; current y position 
+dir = $f3									; ant dir, 0=left, 1=up, 2=right,3=down
 
 start                   ; Configure HI RES display 
                         lda #$3b            ; Bit 5 on        
@@ -41,16 +42,19 @@ resetscreenmem          sta (videoadrLSB),y  ; Store in fb,fa location+y
                         cpx #$40            ; we count to 3fff (I think, if we count to far it is only sprite memory I think)          
                         bne resetscreenmem
                         ; x-position is 0-320 stored in f0 and f1, 160 is a0       
-                        lda #$a0            ; LSB of position for 160       
+
+						; set initial position for ant
+						lda #$a0            ; LSB of position for 160       
                         sta xLSB            ; store lsb of x position       
                         lda #0              ; MSB of x position for 160       
                         sta xMSB            ; store msb of x position        
                         ; y position is 0-200 stored in f2       
                         lda #$64            ; y position 100        
-                        sta y               ; store y position        
+                        sta y               ; store y position         
+
                         ; store dir in f3    
                         lda #0              ; dir 0   
-                        sta $f3
+                        sta dir
                         ; store char*8 = 8*int(x/8) in e0 and e1       
 loop                    lda xMSB            ;msb of x     
                         sta $e1             ;don't need to do anything with this      
@@ -152,33 +156,33 @@ storebitflag            sta $e8
                         cmp #0              ; check if black now   
                         bne white           ; go to white if not equal(double check logic after three beers)    
                         ; assume black    
-                        inc $f3
+                        inc dir
                         lda #$04
-                        cmp $f3             ;check    
+                        cmp dir             ;check    
                         beq wrappos
                         jmp checkdir
 wrappos                 lda #0
-                        sta $f3             ;is right   
+                        sta dir             ;is right   
                         jmp checkdir
-white                   dec $f3
+white                   dec dir
                         lda #$ff
-                        cmp $f3
+                        cmp dir
                         beq wrapneg         ; if less than zero      
                         jmp checkdir
 wrapneg                 lda #$03
-                        sta $f3             ; set to 03 if negative   
+                        sta dir             ; set to 03 if negative   
                         jmp checkdir
 checkdir                lda #0
-                        cmp $f3
+                        cmp dir
                         beq right
                         lda #$01
-                        cmp $f3
+                        cmp dir
                         beq up
                         lda #$02
-                        cmp $f3
+                        cmp dir
                         beq left
                         lda #$03
-                        cmp $f3
+                        cmp dir
                         beq down
 right                   inc xLSB
                         lda #0
