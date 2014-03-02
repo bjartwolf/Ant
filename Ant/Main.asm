@@ -44,12 +44,12 @@ resetscreenmem          sta (videoadrLSB),y  ; Store in fb,fa location+y
                         ; x-position is 0-320 stored in f0 and f1, 160 is a0       
 
 						; set initial position for ant
-						lda #$a0            ; LSB of position for 160       
+						lda #160            ; LSB of position for 160       
                         sta xLSB            ; store lsb of x position       
                         lda #0              ; MSB of x position for 160       
                         sta xMSB            ; store msb of x position        
                         ; y position is 0-200 stored in f2       
-                        lda #$64            ; y position 100        
+                        lda #100            ; y position 100        
                         sta y               ; store y position         
 
                         ; store dir in f3    
