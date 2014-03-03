@@ -96,43 +96,31 @@ loop                    clc
                         rol                 ; rotate in carry           
                         sta $e5             ; store msb           
                         clc                 ; clear carry           
-                        lda $e4             ;           
-                        rol                 ; multiply by four            
-                        sta $e4             ; save lsb           
-                        lda $e5             ; load msb           
-                        rol                 ; rotate in carry           
-                        sta $e5
+                        rol $e4             ; multiply by four            
+                        rol $e5             ; multiply by four
                         clc                 ; clear carry            
-                        lda $e4             ;           
-                        rol                 ; multiply by eight          
-                        sta $e4             ; save lsb            
-                        sta $e6             ; save lsb for 32 multiplication          
-                        lda $e5             ; load msb           
-                        rol                 ; rotate in carry            
-                        sta $e5             ; save msb          
-                        sta $e7             ; save msb for 32 multiplication          
-                        clc                 ; clear carry           
-                        rol $e6             ; multiply lsb by 2 to 16          
-                        rol $e7             ; multiply msb by 2, rotate in carry          
+                        rol $e4             ;   
+                        rol $e5             ; multiply by eight 
+                        lda $e4             ; load lsb*8 
+						clc
+                        adc scrMemLSB
+                        sta scrMemLSB       ; add 8* to lsb 
+                        lda $e5
+						adc scrMemMSB
+                        sta scrMemMSB       ; add 8* to msb 
+						clc
+                        rol $e4             ; multiply lsb by 2 to 16          
+                        rol $e5             ; multiply msb by 2, rotate in carry          
                         clc                 ; clear carry          
-                        rol $e6             ; multiply lsb by 2, 32 total now           
-                        rol $e7             ; multiply msb by 2, 32 total now           
-                        ; 16 bit summation            
-                        ; scrMem + row*320 in e45 and e67    
+                        rol $e4             ; multiply lsb by 2, 32 total now           
+                        rol $e5             ; multiply msb by 2, 32 total now        
+                        lda $e4
                         clc 
-                        lda scrMemLSB
-                        adc $e4
+                        adc scrMemLSB
                         sta scrMemLSB
-                        lda scrMemMSB
-                        adc $e5
-                        sta scrMemMSB
-                        clc 
-                        lda scrMemLSB
-                        adc $e6
-                        sta scrMemLSB
-                        lda scrMemMSB
-                        adc $e7
-                        sta scrMemMSB
+                        lda $e5
+                        adc scrMemMSB
+						sta scrMemMSB
 
                         ; calclulate bitflag for finding current xy pos in scrMem           
                         lda xLSB            ; x lsb            
@@ -169,7 +157,6 @@ wrappos                 lda right           ; if position is wrapped on positive
                         jmp checkdir
 wrapneg                 lda down            ; if position is negative, wrap around to down   
                         sta dir
-                        jmp checkdir
 checkdir                lda right
                         cmp dir
                         beq goright
