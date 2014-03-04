@@ -64,74 +64,12 @@ resetscreenmem          sta (videoadrLSB),y  ; Store in fb,fa location+y
                         lda #0              ; dir 0        
                         sta dir
 
-                        ; store char*8 = 8*int(x/8) on top of base and store in scrMem    
-loop                    clc 
-                        lda xLSB            ;lsb of x            
-                        and #$f8            ;ignore three last bits - 8*int(x/8)            
-                        adc baseLSB
-                        sta scrMemLSB       ;store lsb           
-                        lda baseMSB         ;msb of base            
-                        adc xMSB
-                        sta scrMemMSB       ;store msb           
-
-                        ; calculate y and 7 (line) and add to scrMem     
-                        clc 
-                        lda y
-                        and #%00000111      ;keep only last three bits    
-                        adc scrMemLSB
-                        sta scrMemLSB       ;lsb           
-                        lda scrMemMSB
-                        adc #0
-                        sta scrMemMSB
-
-                        ; calculate 320*int(y/8)           
-                        ; which is 40*(y&f8) or 8*(y&f8)+32*(y&f8)            
-                        ; and store in locations e4-e5 and e6-e7           
-                        lda y
-                        and #$f8            ; y&f8           
-                        clc                 ; clear carry before rotate            
-                        rol                 ; multiply by two           
-                        sta $e4             ; store lsb           
-                        lda #0              ; clear lsb           
-                        rol                 ; rotate in carry           
-                        sta $e5             ; store msb           
-                        clc                 ; clear carry           
-                        rol $e4             ; multiply by four            
-                        rol $e5             ; multiply by four
-                        clc                 ; clear carry            
-                        rol $e4             ;   
-                        rol $e5             ; multiply by eight 
-                        lda $e4             ; load lsb*8 
-						clc
-                        adc scrMemLSB
-                        sta scrMemLSB       ; add 8* to lsb 
-                        lda $e5
-						adc scrMemMSB
-                        sta scrMemMSB       ; add 8* to msb 
-						clc
-                        rol $e4             ; multiply lsb by 2 to 16          
-                        rol $e5             ; multiply msb by 2, rotate in carry          
-                        clc                 ; clear carry          
-                        rol $e4             ; multiply lsb by 2, 32 total now           
-                        rol $e5             ; multiply msb by 2, 32 total now        
-                        lda $e4
-                        clc 
-                        adc scrMemLSB
-                        sta scrMemLSB
-                        lda $e5
-                        adc scrMemMSB
-						sta scrMemMSB
-
-                        ; calclulate bitflag for finding current xy pos in scrMem           
-                        lda xLSB            ; x lsb            
-                        and #%00000111      ; keep only three last values            
-                        tax                 ; move three last bits to x as iterator           
-                        lda #0              ; clear accumulator  
-                        sec                 ; set carry to rotate into bitflag        
-movebitflag1            ror                 ; move flag one to the right  
-                        dex                 ; decrement iterator  
-                        bpl movebitflag1    ; if x is 0 continue           
+						lda #%00010000
                         sta scrBitFlag
+                        lda #$2f
+                        sta scrMemMSB
+                        lda #$a3
+						sta scrMemLSB
 
                         ; flip color by xor with bit           
 shortcut                lda scrBitFlag      ; load bit flag for which bit to turn on            
