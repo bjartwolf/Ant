@@ -6,7 +6,6 @@ videoadrMSB = $fb
 regbase = $d000
 whiteblack = #$f0
 videocolorbase = $0400
-xLSB = $f0                                  ; current x position      
 xMSB = $f1
 y = $f2                                     ; current y position      
 dir = $f3                                   ; ant dir     
@@ -50,15 +49,6 @@ resetscreenmem          sta (videoadrLSB),y  ; Store in fb,fa location+y
                         cpx #$40            ; we count to 3fff (I think, if we count to far it is only sprite memory I think)               
                         bne resetscreenmem
                         ; x-position is 0-320 stored in f0 and f1, 160 is a0            
-
-                        ; set initial position for ant     
-                        lda #160            ; LSB of position for 160            
-                        sta xLSB            ; store lsb of x position            
-                        lda #0              ; MSB of x position for 160            
-                        sta xMSB            ; store msb of x position             
-                        ; y position is 0-200 stored in f2            
-                        lda #100            ; y position 100             
-                        sta y               ; store y position              
 
                         ; store dir in f3         
                         lda #0              ; dir 0        
@@ -107,13 +97,7 @@ checkdir                lda right
                         lda down
                         cmp dir
                         beq godown
-goright                 inc xLSB
-                        lda #0
-                        cmp xLSB
-                        beq incmsb          ; jmp back if not wrapped to zero         
-                        jmp checkrightshortcut
-incmsb                  inc xMSB            ;	y if carry add one to msb        
-                        jmp checkrightshortcut
+goright                 jmp checkrightshortcut
 checkrightshortcut      lda scrBitflag
 						cmp #%00000001
                         bne rightshortcut
@@ -162,11 +146,7 @@ goup					inc y
 						jmp shortcut
 incScrMem				inc scrMemLSB ; can not overflow as not 7
 						jmp shortcut
-goleft                  dec xLSB
-                        lda #$ff
-                        cmp xLSB
-                        beq decmsb
-                        jmp checkleftshortcut
+goleft                  jmp checkleftshortcut
 decmsb                  dec xMSB
 checkleftshortcut       lda scrBitflag
 						cmp #%10000000
