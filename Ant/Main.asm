@@ -6,7 +6,6 @@ videoadrMSB = $fb
 regbase = $d000
 whiteblack = #$f0
 videocolorbase = $0400
-y = $f2                                     ; current y position      
 dir = $f3                                   ; ant dir     
 right = #0
 up = #1
@@ -47,21 +46,21 @@ resetscreenmem          sta (videoadrLSB),y  ; Store in fb,fa location+y
                         stx videoadrMSB     ; save stored value back             
                         cpx #$40            ; we count to 3fff (I think, if we count to far it is only sprite memory I think)               
                         bne resetscreenmem
-                        ; x-position is 0-320 stored in f0 and f1, 160 is a0            
 
                         ; store dir in f3         
                         lda #0              ; dir 0        
                         sta dir
 
+						; 
 						lda #%00010000
                         sta scrBitFlag
-                        lda #$2f
+                        lda #$2f		;position middle
                         sta scrMemMSB
-                        lda #$a3
+                        lda #$a3		;position middle
 						sta scrMemLSB
 
                         ; flip color by xor with bit           
-shortcut                lda scrBitFlag      ; load bit flag for which bit to turn on            
+loop                lda scrBitFlag      ; load bit flag for which bit to turn on            
                         ldy #0              ; not sure how to do without index           
                         eor (scrMemLSB),y   ; use eor to flip value of black and white        
                         sta (scrMemLSB),y   ; store new color   
@@ -96,10 +95,10 @@ checkdir                lda right
                         lda down
                         cmp dir
                         beq godown
-goright                 jmp checkrightshortcut
-checkrightshortcut      lda scrBitflag
+goright                 jmp checkrightloop
+checkrightloop      lda scrBitflag
 						cmp #%00000001
-                        bne rightshortcut
+                        bne rightloop
                         ; Change bitflag to other side and increase memlocation by 8
                         lda #%10000000
                         sta scrBitflag
@@ -110,12 +109,11 @@ checkrightshortcut      lda scrBitflag
                         lda scrMemMSB
                         adc #0
 						sta scrMemMSB
-						jmp shortcut
-rightshortcut			clc
+						jmp loop
+rightloop			clc
 						ror scrBitflag
-						jmp shortcut
-godown                  dec y
-                        lda scrMemLSB
+						jmp loop
+godown                  lda scrMemLSB
                         and #$07
                         cmp #$00
                         bne decScrMem
@@ -126,14 +124,13 @@ godown                  dec y
                         lda scrMemMSB
                         sbc #1
 						sta scrMemMSB
-                        jmp shortcut
+                        jmp loop
 decScrMem               dec scrMemLSB       ; ca not overflow because it is nnot zer 
-						jmp shortcut
-goup					inc y
-						lda scrMemLSB
+						jmp loop
+goup					lda scrMemLSB
 						and #7
                         cmp #7
-                        bne incScrMem       ; if 7&y != 7 then take shortcut 
+                        bne incScrMem       ; if 7&y != 7 then take loop 
                         ; 7 - should go 313 more, 139 in hex
 						clc
                         lda #$39
@@ -142,12 +139,12 @@ goup					inc y
                         lda scrMemMSB
                         adc #1
 						sta scrMemMSB
-						jmp shortcut
+						jmp loop
 incScrMem				inc scrMemLSB ; can not overflow as not 7
-						jmp shortcut
+						jmp loop
 goleft					lda scrBitflag
 						cmp #%10000000
-                        bne leftshortcut
+                        bne leftloop
 						lda #%00000001
                         sta scrBitflag
                         sec 
@@ -157,9 +154,9 @@ goleft					lda scrBitflag
                         lda scrMemMSB
                         sbc #0
 						sta scrMemMSB
-						jmp shortcut
-leftshortcut			clc
+						jmp loop
+leftloop			clc
 						rol scrBitflag
-						jmp shortcut
+						jmp loop
 finito                  rts 
                         .include "Launcher.asm"
