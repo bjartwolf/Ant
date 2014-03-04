@@ -6,7 +6,6 @@ videoadrMSB = $fb
 regbase = $d000
 whiteblack = #$f0
 videocolorbase = $0400
-xMSB = $f1
 y = $f2                                     ; current y position      
 dir = $f3                                   ; ant dir     
 right = #0
@@ -146,7 +145,6 @@ goup					inc y
 						jmp shortcut
 incScrMem				inc scrMemLSB ; can not overflow as not 7
 						jmp shortcut
-decmsb                  dec xMSB
 goleft					lda scrBitflag
 						cmp #%10000000
                         bne leftshortcut
