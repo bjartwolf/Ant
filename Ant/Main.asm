@@ -198,7 +198,14 @@ godown                  dec y
                         and #$07
                         cmp #$00
                         bne decScrMem
-                        jmp loop
+                        sec                 ; set carry to borrow 
+                        lda scrMemLSB
+                        sbc #$39
+                        sta scrMemLSB
+                        lda scrMemMSB
+                        sbc #1
+						sta scrMemMSB
+                        jmp shortcut
 decScrMem               dec scrMemLSB       ; ca not overflow because it is nnot zer 
 						jmp shortcut
 goup					inc y
@@ -206,7 +213,7 @@ goup					inc y
 						and #7
                         cmp #7
                         bne incScrMem       ; if 7&y != 7 then take shortcut 
-                        ; 7 - should go 313 more, which is 255 and 58 
+                        ; 7 - should go 313 more, 139 in hex
 						clc
                         lda #$39
                         adc scrMemLSB
