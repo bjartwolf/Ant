@@ -179,20 +179,48 @@ incmsb                  inc xMSB            ;	y if carry add one to msb
 checkrightshortcut      lda scrBitflag
 						cmp #%00000001
                         bne rightshortcut
-                        jmp loop
+                        ; Change bitflag to other side and increase memlocation by 8
+                        lda #%10000000
+                        sta scrBitflag
+                        clc 
+                        lda scrMemLSB
+                        adc #8
+                        sta scrMemLSB
+                        lda scrMemMSB
+                        adc #0
+						sta scrMemMSB
+						jmp shortcut
 rightshortcut			clc
 						ror scrBitflag
 						jmp shortcut
-goup                    inc y
-                        jmp loop
 godown                  dec y
+                        lda scrMemLSB
+                        and #$07
+                        cmp #$00
+                        bne decScrMem
                         jmp loop
+decScrMem               dec scrMemLSB       ; ca not overflow because it is nnot zer 
+						jmp shortcut
+goup					inc y
+						lda scrMemLSB
+						and #$07
+                        cmp #$07
+						bne incScrMem ; if 7&y != 7 then take shortcut
+						jmp loop
+incScrMem				INC scrMemLSB ; can not overflow as not 7
+						jmp shortcut
 goleft                  dec xLSB
                         lda #$ff
                         cmp xLSB
                         beq decmsb
-                        jmp loop
+                        jmp checkleftshortcut
 decmsb                  dec xMSB
+checkleftshortcut       lda scrBitflag
+						cmp #%10000000
+                        bne leftshortcut
                         jmp loop
+leftshortcut			clc
+						rol scrBitflag
+						jmp shortcut
 finito                  rts 
                         .include "Launcher.asm"
