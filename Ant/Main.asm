@@ -51,7 +51,7 @@ resetscreenmem          sta (videoadrLSB),y  ; Store in fb,fa location+y
                         lda #0              ; dir 0         
                         sta dir
 
-                        ;  
+                        ; Set bitflag and xy position
                         lda #%00010000
                         sta scrBitFlag
                         lda #$2f            ;position middle 
@@ -95,8 +95,7 @@ checkdir                lda right
                         lda down
                         cmp dir
                         beq godown
-goright                 jmp checkrightloop
-checkrightloop          lda scrBitflag
+goright					lda scrBitflag
                         cmp #%00000001
                         bne rightloop
                         ; Change bitflag to other side and increase memlocation by 8 
