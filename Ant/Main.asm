@@ -146,9 +146,8 @@ goup					inc y
 						jmp shortcut
 incScrMem				inc scrMemLSB ; can not overflow as not 7
 						jmp shortcut
-goleft                  jmp checkleftshortcut
 decmsb                  dec xMSB
-checkleftshortcut       lda scrBitflag
+goleft					lda scrBitflag
 						cmp #%10000000
                         bne leftshortcut
 						lda #%00000001
