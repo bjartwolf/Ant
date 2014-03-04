@@ -6,6 +6,9 @@ videoadrMSB = $fb
 regbase = $d000
 whiteblack = #$f0
 videocolorbase = $0400
+xLSB = $f0                                  ; current x position      
+xMSB = $f1
+y = $f2                                     ; current y position      
 dir = $f3                                   ; ant dir     
 right = #0
 up = #1
@@ -48,16 +51,89 @@ resetscreenmem          sta (videoadrLSB),y  ; Store in fb,fa location+y
                         bne resetscreenmem
                         ; x-position is 0-320 stored in f0 and f1, 160 is a0            
 
+                        ; set initial position for ant     
+                        lda #160            ; LSB of position for 160            
+                        sta xLSB            ; store lsb of x position            
+                        lda #0              ; MSB of x position for 160            
+                        sta xMSB            ; store msb of x position             
+                        ; y position is 0-200 stored in f2            
+                        lda #100            ; y position 100             
+                        sta y               ; store y position              
+
                         ; store dir in f3         
                         lda #0              ; dir 0        
-						sta dir
-                        ; set ant in the middle 
-                        lda #%00001000
-                        sta scrBitFlag
-                        lda #$2f
+                        sta dir
+
+                        ; store char*8 = 8*int(x/8) on top of base and store in scrMem    
+loop                    clc 
+                        lda xLSB            ;lsb of x            
+                        and #$f8            ;ignore three last bits - 8*int(x/8)            
+                        adc baseLSB
+                        sta scrMemLSB       ;store lsb           
+                        lda baseMSB         ;msb of base            
+                        adc xMSB
+                        sta scrMemMSB       ;store msb           
+
+                        ; calculate y and 7 (line) and add to scrMem     
+                        clc 
+                        lda y
+                        and #%00000111      ;keep only last three bits    
+                        adc scrMemLSB
+                        sta scrMemLSB       ;lsb           
+                        lda scrMemMSB
+                        adc #0
                         sta scrMemMSB
-                        lda #$a3
-						sta scrMemLSB
+
+                        ; calculate 320*int(y/8)           
+                        ; which is 40*(y&f8) or 8*(y&f8)+32*(y&f8)            
+                        ; and store in locations e4-e5 and e6-e7           
+                        lda y
+                        and #$f8            ; y&f8           
+                        clc                 ; clear carry before rotate            
+                        rol                 ; multiply by two           
+                        sta $e4             ; store lsb           
+                        lda #0              ; clear lsb           
+                        rol                 ; rotate in carry           
+                        sta $e5             ; store msb           
+                        clc                 ; clear carry           
+                        rol $e4             ; multiply by four            
+                        rol $e5             ; multiply by four
+                        clc                 ; clear carry            
+                        rol $e4             ;   
+                        rol $e5             ; multiply by eight 
+                        lda $e4             ; load lsb*8 
+						clc
+                        adc scrMemLSB
+                        sta scrMemLSB       ; add 8* to lsb 
+                        lda $e5
+						adc scrMemMSB
+                        sta scrMemMSB       ; add 8* to msb 
+						clc
+                        rol $e4             ; multiply lsb by 2 to 16          
+                        rol $e5             ; multiply msb by 2, rotate in carry          
+                        clc                 ; clear carry          
+                        rol $e4             ; multiply lsb by 2, 32 total now           
+                        rol $e5             ; multiply msb by 2, 32 total now        
+                        lda $e4
+                        clc 
+                        adc scrMemLSB
+                        sta scrMemLSB
+                        lda $e5
+                        adc scrMemMSB
+						sta scrMemMSB
+
+                        ; calclulate bitflag for finding current xy pos in scrMem           
+                        lda xLSB            ; x lsb            
+                        and #%00000111      ; keep only three last values            
+                        tax                 ; move three last bits to x as iterator           
+                        lda #0              ; clear accumulator  
+                        sec                 ; set carry to rotate into bitflag        
+movebitflag1            ror                 ; move flag one to the right  
+                        dex                 ; decrement iterator  
+                        bpl movebitflag1    ; if x is 0 continue           
+                        sta scrBitFlag
+
+                        ; flip color by xor with bit           
 shortcut                lda scrBitFlag      ; load bit flag for which bit to turn on            
                         ldy #0              ; not sure how to do without index           
                         eor (scrMemLSB),y   ; use eor to flip value of black and white        
@@ -83,7 +159,7 @@ wrapneg                 lda down            ; if position is negative, wrap arou
                         sta dir
 checkdir                lda right
                         cmp dir
-                        beq checkrightshortcut
+                        beq goright
                         lda up
                         cmp dir
                         beq goup
@@ -93,7 +169,13 @@ checkdir                lda right
                         lda down
                         cmp dir
                         beq godown
-incmsb                  jmp checkrightshortcut
+goright                 inc xLSB
+                        lda #0
+                        cmp xLSB
+                        beq incmsb          ; jmp back if not wrapped to zero         
+                        jmp checkrightshortcut
+incmsb                  inc xMSB            ;	y if carry add one to msb        
+                        jmp checkrightshortcut
 checkrightshortcut      lda scrBitflag
 						cmp #%00000001
                         bne rightshortcut
@@ -111,7 +193,8 @@ checkrightshortcut      lda scrBitflag
 rightshortcut			clc
 						ror scrBitflag
 						jmp shortcut
-godown                  lda scrMemLSB
+godown                  dec y
+                        lda scrMemLSB
                         and #$07
                         cmp #$00
                         bne decScrMem
@@ -125,7 +208,8 @@ godown                  lda scrMemLSB
                         jmp shortcut
 decScrMem               dec scrMemLSB       ; ca not overflow because it is nnot zer 
 						jmp shortcut
-goup					lda scrMemLSB
+goup					inc y
+						lda scrMemLSB
 						and #7
                         cmp #7
                         bne incScrMem       ; if 7&y != 7 then take shortcut 
@@ -140,12 +224,18 @@ goup					lda scrMemLSB
 						jmp shortcut
 incScrMem				inc scrMemLSB ; can not overflow as not 7
 						jmp shortcut
-goleft                  cmp #%10000000
+goleft                  dec xLSB
+                        lda #$ff
+                        cmp xLSB
+                        beq decmsb
+                        jmp checkleftshortcut
+decmsb                  dec xMSB
+checkleftshortcut       lda scrBitflag
+						cmp #%10000000
                         bne leftshortcut
-                        ; switch flag  
 						lda #%00000001
                         sta scrBitflag
-                        sec
+                        sec 
                         lda scrMemLSB
                         sbc #8
                         sta scrMemLSB
