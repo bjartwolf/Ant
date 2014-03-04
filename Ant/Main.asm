@@ -134,7 +134,7 @@ movebitflag1            ror                 ; move flag one to the right
                         sta scrBitFlag
 
                         ; flip color by xor with bit           
-                        lda scrBitFlag      ; load bit flag for which bit to turn on            
+shortcut                lda scrBitFlag      ; load bit flag for which bit to turn on            
                         ldy #0              ; not sure how to do without index           
                         eor (scrMemLSB),y   ; use eor to flip value of black and white        
                         sta (scrMemLSB),y   ; store new color   
@@ -173,9 +173,16 @@ goright                 inc xLSB
                         lda #0
                         cmp xLSB
                         beq incmsb          ; jmp back if not wrapped to zero         
-                        jmp loop
+                        jmp checkrightshortcut
 incmsb                  inc xMSB            ;	y if carry add one to msb        
+                        jmp checkrightshortcut
+checkrightshortcut      lda scrBitflag
+						cmp #%00000001
+                        bne rightshortcut
                         jmp loop
+rightshortcut			clc
+						ror scrBitflag
+						jmp shortcut
 goup                    inc y
                         jmp loop
 godown                  dec y
