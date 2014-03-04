@@ -203,11 +203,19 @@ decScrMem               dec scrMemLSB       ; ca not overflow because it is nnot
 						jmp shortcut
 goup					inc y
 						lda scrMemLSB
-						and #$07
-                        cmp #$07
-						bne incScrMem ; if 7&y != 7 then take shortcut
-						jmp loop
-incScrMem				INC scrMemLSB ; can not overflow as not 7
+						and #7
+                        cmp #7
+                        bne incScrMem       ; if 7&y != 7 then take shortcut 
+                        ; 7 - should go 313 more, which is 255 and 58 
+						clc
+                        lda #$39
+                        adc scrMemLSB
+                        sta scrMemLSB
+                        lda scrMemMSB
+                        adc #1
+						sta scrMemMSB
+						jmp shortcut
+incScrMem				inc scrMemLSB ; can not overflow as not 7
 						jmp shortcut
 goleft                  dec xLSB
                         lda #$ff
