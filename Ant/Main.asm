@@ -109,8 +109,7 @@ goright					lda scrBitflag
                         adc #0
                         sta scrMemMSB
                         jmp loop
-rightloop               clc 
-                        ror scrBitflag
+rightloop               lsr scrBitflag
                         jmp loop
 godown                  lda scrMemLSB
                         and #$07			; and sets flag if result is zero
@@ -143,7 +142,7 @@ incScrMem               inc scrMemLSB       ; can not overflow as not 7
 goleft                  lda scrBitflag
                         cmp #%10000000
                         bne leftloop
-                        lda #%00000001
+                        lda #%00000001 ; maybe do in place rotate of flag without carry?
                         sta scrBitflag
                         sec 
                         lda scrMemLSB
@@ -153,8 +152,7 @@ goleft                  lda scrBitflag
                         sbc #0
                         sta scrMemMSB
                         jmp loop
-leftloop                clc 
-                        rol scrBitflag
+leftloop                asl scrBitflag
                         jmp loop
 finito                  rts 
                         .include "Launcher.asm"
