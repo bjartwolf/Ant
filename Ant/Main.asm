@@ -113,11 +113,10 @@ rightloop               clc
                         ror scrBitflag
                         jmp loop
 godown                  lda scrMemLSB
-                        and #$07
-                        cmp #$00
-                        bne decScrMem
-                        sec                 ; set carry to borrow  
-                        lda scrMemLSB
+                        and #$07			; and sets flag if result is zero
+                        bne decScrMem		; branch if three last bits is not zero
+                        sec                 ; result is zero, set carry to borrow  
+                        lda scrMemLSB		; must go down 320-7=313=0x139
                         sbc #$39
                         sta scrMemLSB
                         lda scrMemMSB
