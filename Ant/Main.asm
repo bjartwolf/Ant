@@ -82,11 +82,10 @@ loop                    lda scrBitFlag      ; load bit flag for which bit to tur
                         adc #64             ; Turn right is adding 64 
                         sta dir
                         jmp checkdir
-white                   clc 
-                        lda dir             ; load directions into accumulator 
+white                   lda dir             ; load directions into accumulator 
                         sec 
                         sbc #64             ; turn left is subtracing 64 
-                        sta dir
+                        sta dir	
 checkdir                cmp downmem			; acc already holds direction, comparing <= 192
                         bcs godown          ; 
                         cmp leftmem			; <= 128
