@@ -1,5 +1,5 @@
                         * = $1000
-baseMSB = #$20
+baseMSB = #$20	
 baseLSB = #$00
 videoadrLSB = $fa
 videoadrMSB = $fb
@@ -8,9 +8,9 @@ whiteblack = #$f0
 videocolorbase = $0400
 dir = $f3                                   ; ant dir      
 right = #0
-up = #1
-left = #2
-down = #3
+up = #64
+left = #128
+down = #192
 scrMemLSB = $ea
 scrMemMSB = $eb
 scrBitFlag = $e8
@@ -46,11 +46,9 @@ resetscreenmem          sta (videoadrLSB),y  ; Store in fb,fa location+y
                         stx videoadrMSB     ; save stored value back              
                         cpx #$40            ; we count to 3fff (I think, if we count to far it is only sprite memory I think)                
                         bne resetscreenmem
-
                         ; store dir in f3          
                         lda #0              ; dir 0         
                         sta dir
-
                         ; Set bitflag and xy position
                         lda #%00010000
                         sta scrBitFlag
@@ -58,31 +56,25 @@ resetscreenmem          sta (videoadrLSB),y  ; Store in fb,fa location+y
                         sta scrMemMSB
                         lda #$a3            ;position middle 
                         sta scrMemLSB
-
                         ; flip color by xor with bit            
 loop                    lda scrBitFlag      ; load bit flag for which bit to turn on             
                         ldy #0              ; not sure how to do without index            
                         eor (scrMemLSB),y   ; use eor to flip value of black and white         
                         sta (scrMemLSB),y   ; store new color    
                         and scrBitFlag      ; only check current bit           
-                        cmp #0              ; check if black now         
-                        bne white           ; go to white if not equal(double check logic after three beers)          
-                        ; is black    
-                        inc dir
-                        lda #4
-                        cmp dir             ;check          
-                        beq wrappos
+						cmp #0              ; check if black now         
+						bne white           ; go to white if not equal(double check logic after three beers)          
+                        ; did not branch on white, so we are on black
+                        lda dir             ; load directions into accumulator    
+						clc
+						adc #64				; Turn right is adding 64
+						sta dir
                         jmp checkdir
-white                   dec dir
-                        lda #$ff
-                        cmp dir
-                        beq wrapneg         ; if less than zero            
-                        jmp checkdir
-wrappos                 lda right           ; if position is wrapped on positive, set to right    
-                        sta dir
-                        jmp checkdir
-wrapneg                 lda down            ; if position is negative, wrap around to down    
-                        sta dir
+white                   clc 
+						lda dir ; load directions into accumulator
+						sec
+                        sbc #64				; turn left is subtracing 64
+						sta dir
 checkdir                lda right
                         cmp dir
                         beq goright
