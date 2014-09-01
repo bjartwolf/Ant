@@ -75,10 +75,7 @@ white                   clc
 						sec
                         sbc #64				; turn left is subtracing 64
 						sta dir
-checkdir                lda right
-                        cmp dir
-                        beq goright
-                        lda up
+checkdir                lda up
                         cmp dir
                         beq goup
                         lda left
@@ -86,7 +83,7 @@ checkdir                lda right
                         beq goleft
                         lda down
                         cmp dir
-                        beq godown
+                        beq godown ; fall through to right
 goright					lda scrBitflag
                         cmp #%00000001
                         bne rightloop
