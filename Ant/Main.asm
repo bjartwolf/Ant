@@ -87,12 +87,12 @@ white                   clc
                         sec 
                         sbc #64             ; turn left is subtracing 64 
                         sta dir
-checkdir                cmp downmem
-                        bcs godown          ; fall through to right  
-                        cmp leftmem
+checkdir                cmp downmem			; acc already holds direction, comparing <= 192
+                        bcs godown          ; 
+                        cmp leftmem			; <= 128
                         bcs goleft
-                        cmp upmem           ; if greater than up			; acc holds direction 
-                        bcs goup
+                        cmp upmem           
+                        bcs goup			; fall through to right  
 goright                 lda scrBitflag
                         cmp #%00000001
                         bne rightloop       ; Change bitflag to other side and increase memlocation by 8  
