@@ -14,20 +14,8 @@ down = #192
 scrMemLSB = $ea
 scrMemMSB = $eb
 scrBitFlag = $e8
-upmem = $e1                                 ; just to compare directions, don't know how to do it against fixed num, so just store the up, left, down values there 
-downmem = $e2
-leftmem = $e3
 
-
-start                   ;save constants  
-                        lda up
-                        sta upmem
-                        lda down
-                        sta downmem
-                        lda left
-                        sta leftmem
-
-                        ; Configure HI RES display        
+start                   ; Configure HI RES display        
                         lda #$3b            ; Bit 5 on               
                         sta regbase + 17    ; Reg 17 Bit 5 enable high res                 
                         lda #$18            ; Point to high res memory map                
@@ -86,11 +74,11 @@ white                   lda dir             ; load directions into accumulator
                         sec 
                         sbc #64             ; turn left is subtracing 64 
                         sta dir	
-checkdir                cmp downmem			; acc already holds direction, comparing <= 192
+checkdir                cmp #192			; acc already holds direction, comparing <= 192
                         bcs godown          ; 
-                        cmp leftmem			; <= 128
+                        cmp #128			; <= 128
                         bcs goleft
-                        cmp upmem           
+                        cmp #64
                         bcs goup			; fall through to right  
 goright                 lda scrBitflag
                         cmp #%00000001
