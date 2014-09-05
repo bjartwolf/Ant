@@ -70,8 +70,8 @@ loop                    lda antPosInByte    ; load bit flag for which bit to tur
 						; Change color of new position
 						eor (antPosByteLSB),y  ; use eor to flip value of black and white for current position 
                         sta (antPosByteLSB),y  ; store new color         
-                        and antPosInByte    ; only check current bit                
-                        cmp #0              ; check if black now              
+						and antPosInByte    ; only check current bit                
+						cmp #0              ; check if black now              
                         bne isOnWhiteSpot   ; go to white if not equal(double check logic after three beers)               
                         ; did not branch on white, so we are on black     
                         lda dir             ; load directions into accumulator         
@@ -92,7 +92,7 @@ checkdir                cmp down            ; acc already holds direction, compa
 goright                 lda antPosInByte    
                         cmp #%00000001      ; check if we are moving to the character to the right
 						beq goToRightChar
-						lsr antPosInByte    ; Just shift bit to the left
+						lsr antPosInByte    ; Just shift bit to the right
                         jmp loop 
 goToRightChar           lda #%10000000		; Change bitflag to other side
                         sta antPosInByte
@@ -119,23 +119,24 @@ decScrMem               dec antPosByteLSB   ; ca not overflow because it is nnot
                         jmp loop
 goup                    lda antPosByteLSB
                         and #7
-                        cmp #7
+                        cmp #7				; Check if at top of character
                         bne incScrMem       ; if 7&y != 7 then take loop       
-                        ; 7 - should go 313 more, 139 in hex      
                         clc 
-                        lda #$39
+                        lda #$39 ; should go 313 more, 139 in hex (320-7)
                         adc antPosByteLSB
                         sta antPosByteLSB
                         lda antPosByteMSB
                         adc #1
                         sta antPosByteMSB
                         jmp loop
-incScrMem               inc antPosByteLSB   ; can not overflow as not 7      
+incScrMem               inc antPosByteLSB   ; move up one, can not overflow as not 7      
                         jmp loop
 goleft                  lda antPosInByte
                         cmp #%10000000
-                        bne goLeftWithinChar
-                        lda #%00000001      ; maybe do in place rotate of flag without carry?     
+                        beq goToLeftChar
+						asl antPosInByte
+                        jmp loop
+goToLeftChar			lda #%00000001      ; maybe do in place rotate of flag without carry?     
                         sta antPosInByte
                         sec 
                         lda antPosByteLSB
@@ -145,6 +146,4 @@ goleft                  lda antPosInByte
                         sbc #0
                         sta antPosByteMSB
                         jmp loop
-goLeftWithinChar        asl antPosInByte
-                        jmp loop
-                        .include "Launcher.asm"
+                                    .include "Launcher.asm"
