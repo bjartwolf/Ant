@@ -3,12 +3,12 @@ baseMSB = #$20
 baseLSB = #$00
 videoadrLSB = $fa
 videoadrMSB = $fb
-regbase = $d000
-whiteblack = #$f0
+regbase = $d000								; base adress for registermainpulation
+whiteblack = #$f0							; The colors the fields should have for on/off
 videocolorbase = $0400
 dir = $f3                                   ; ant dir        
-right = #0
-up = #64
+right = #0									; using 0 for right and adding 64 when turning left
+up = #64									; This allows for wrapping around automatically
 left = #128
 down = #192
 scrMemLSB = $ea
@@ -27,13 +27,15 @@ start                   ; Configure HI RES display
                         sta videoadrMSB
 
                         ; Set color in 25*40 grid to black and white       
-                        lda whiteblack      ; msb nybble is on color, lsb is off          
-                        ldy #0              ; Counter count down from 0 and loop                
-resetcolor              sta videocolorbase,y  ; Easier and faster than using 16 bit adressing                
-                        sta videocolorbase + $0100,y 
-                        sta videocolorbase + $0200,y 
-                        sta videocolorbase + $0300,y 
-                        dey                 ;starts with zero so wraps around first to ff         
+						; For each character we can set the color we should have for on and off
+						lda whiteblack      ; msb nybble is on color, lsb is off, 4 bit colors          
+						; Easier and faster than using 16 bit adressing - split into four.
+						ldy #250          ; Count from 250                
+resetcolor				dey
+						sta videocolorbase,y         ; 0-249
+                        sta videocolorbase + $00FA,y ; 250-499 
+                        sta videocolorbase + $01F3,y ; 499-749
+                        sta videocolorbase + $02EE,y ; 750-999
                         bne resetcolor
 
                         lda #0              ; turn all bits in bitmap off                
