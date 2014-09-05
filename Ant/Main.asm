@@ -62,22 +62,25 @@ resetscreenmem          sta (videoadrLSB),y  ; Store in fb,fa location+y
                         sta antPosByteMSB
                         lda #$a3            ;position middle      
                         sta antPosByteLSB
-                        ; flip color by xor with bit                 
+
+						; This is the main program
+                                         
 loop                    lda antPosInByte    ; load bit flag for which bit to turn on                  
-                        ldy #0              ; not sure how to do without index                 
-                        eor (antPosByteLSB),y  ; use eor to flip value of black and white              
+                        ldy #0              ; not sure how to do eor to 16 bit address without index                 
+						; Change color of new position
+						eor (antPosByteLSB),y  ; use eor to flip value of black and white for current position 
                         sta (antPosByteLSB),y  ; store new color         
                         and antPosInByte    ; only check current bit                
                         cmp #0              ; check if black now              
                         bne isOnWhiteSpot   ; go to white if not equal(double check logic after three beers)               
                         ; did not branch on white, so we are on black     
                         lda dir             ; load directions into accumulator         
-                        clc 
+                        clc                 ; Must clear carry so we overflow correctly when "turning"
                         adc #64             ; Turn right is adding 64     
                         sta dir
                         jmp checkdir
 isOnWhiteSpot           lda dir             ; load directions into accumulator     
-                        sec 
+                        sec					; Must set overflow before "turning"
                         sbc #64             ; turn left is subtracing 64     
                         sta dir
 checkdir                cmp down            ; acc already holds direction, comparing <= 192    
@@ -86,20 +89,20 @@ checkdir                cmp down            ; acc already holds direction, compa
                         bcs goleft
                         cmp up
                         bcs goup            ; fall through to right      
-goright                 lda antPosInByte
-                        cmp #%00000001
-                        bne rightloop       ; Change bitflag to other side and increase memlocation by 8      
-                        lda #%10000000
+goright                 lda antPosInByte    
+                        cmp #%00000001      ; check if we are moving to the character to the right
+                        bne goRightWithinChar        
+                        lda #%10000000		; Change bitflag to other side
                         sta antPosInByte
                         clc 
                         lda antPosByteLSB
-                        adc #8
+                        adc #8              ; increase the position by 8 to move to char to right
                         sta antPosByteLSB
-                        lda antPosByteMSB
+                        lda antPosByteMSB   ; make sure we get the carry to MSB
                         adc #0
                         sta antPosByteMSB
                         jmp loop
-rightloop               lsr antPosInByte
+goRightWithinChar       lsr antPosInByte
                         jmp loop
 godown                  lda antPosByteLSB
                         and #$07            ; and sets flag if result is zero     
@@ -131,7 +134,7 @@ incScrMem               inc antPosByteLSB   ; can not overflow as not 7
                         jmp loop
 goleft                  lda antPosInByte
                         cmp #%10000000
-                        bne leftloop
+                        bne goLeftWithinChar
                         lda #%00000001      ; maybe do in place rotate of flag without carry?     
                         sta antPosInByte
                         sec 
@@ -142,7 +145,6 @@ goleft                  lda antPosInByte
                         sbc #0
                         sta antPosByteMSB
                         jmp loop
-leftloop                asl antPosInByte
+goLeftWithinChar        asl antPosInByte
                         jmp loop
-finito                  rts 
                         .include "Launcher.asm"
