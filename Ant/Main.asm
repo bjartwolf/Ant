@@ -91,8 +91,10 @@ checkdir                cmp down            ; acc already holds direction, compa
                         bcs goup            ; fall through to right      
 goright                 lda antPosInByte    
                         cmp #%00000001      ; check if we are moving to the character to the right
-                        bne goRightWithinChar        
-                        lda #%10000000		; Change bitflag to other side
+						beq goToRightChar
+						lsr antPosInByte    ; Just shift bit to the left
+                        jmp loop 
+goToRightChar           lda #%10000000		; Change bitflag to other side
                         sta antPosInByte
                         clc 
                         lda antPosByteLSB
@@ -101,8 +103,6 @@ goright                 lda antPosInByte
                         lda antPosByteMSB   ; make sure we get the carry to MSB
                         adc #0
                         sta antPosByteMSB
-                        jmp loop
-goRightWithinChar       lsr antPosInByte
                         jmp loop
 godown                  lda antPosByteLSB
                         and #$07            ; and sets flag if result is zero     
