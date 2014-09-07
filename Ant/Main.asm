@@ -1,14 +1,14 @@
                         * = $1000
 regbase = $d000         ; base adress for registermainpulation     
 start                   ; Configure HI RES display              
-                        lda #$18            ; Point to high res memory map                      
-                        sta regbase + 24    ; Reg 24                          
+                        lda #$18            ; Point to high res memory map
+						sta regbase + 24    ; Reg 24, $d024                
                         lda #$3b            ; Bitmask bit 5 on                     
-                        sta regbase + 17    ; Reg 17 Bit 5 enable high res                       
+                        sta regbase + 17    ; Reg 17, $d017 Bit 5 enable high res                       
 
 ; Set color in 25*40 grid to black and white            
 ; For each character we can set the color we should have for on and off     
-videocolorbase = $0400  ; Start adress for colors
+videocolorbase = $0400  ; Default start adress for colors (1000 bytes )
 whiteblack = #$F0       ; The colors the fields should have for on/off     
                         lda whiteblack      ; msb nybble is on color, lsb is off, 4 bit colors               
                         ; Easier and faster than using 16 bit adressing - split into four.     
@@ -26,10 +26,10 @@ resetcolorscheme        dey
 						videoadrLSB = $fa
 						videoadrMSB = $fb
 
-                        lda #0;baseLSB
-                        sta videoadrLSB
                         lda #$20; baseMSB
                         sta videoadrMSB
+                        lda #0;baseLSB
+                        sta videoadrLSB
 
                         lda #0              ; turn all bits in bitmap off                     
                         ldy #0              ; clear y (iterator)		                     
@@ -41,6 +41,11 @@ resetscreenmem          sta (videoadrLSB),y  ; Store in fb,fa location+y
                         stx videoadrMSB     ; save stored value back                     
                         cpx #$40            ; we count to 3fff (I think, if we count to far it is only sprite memory I think)                       
                         bne resetscreenmem
+
+
+antPosByteLSB = $ea     ; which byte is ant in (choose any)   
+antPosByteMSB = $eb
+antPosInByte = $e8      ; position of ant within byte (choose any)
 
                         ; store dir in f3                 
                         lda #0              ; dir 0                
@@ -54,14 +59,11 @@ resetscreenmem          sta (videoadrLSB),y  ; Store in fb,fa location+y
                         sta antPosByteLSB
 
                         ; This is the main program  
-dir = $f3               ; ant direction memory location             
+dir = $f3               ; ant  memory location             
 right = #0              ; using 0 for right and adding 64 when turning left     
 up = #64                ; This allows for wrapping around automatically     
 left = #128
 down = #192
-antPosByteLSB = $ea     ; which byte is ant in (    
-antPosByteMSB = $eb
-antPosInByte = $e8      ; position of ant within byte    
 
 loop                    lda antPosInByte    ; load bit flag for which bit to turn on                    
                         ldy #0              ; not sure how to do eor to 16 bit address without index                   
