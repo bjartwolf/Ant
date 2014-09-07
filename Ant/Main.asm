@@ -20,44 +20,44 @@ resetcolorscheme        dey
                         sta videocolorbase + $02EE,y  ; 750-999      
                         bne resetcolorscheme
 
-videoadrMSB = $fb                           ; used for indexed	 
-                        lda #$20            ; baseMSB 
-                        sta videoadrMSB
-                        lda #0              ;baseLSB 
-                        sta videoadrLSB
-videoadrLSB = $fa                           ; This is the zero-something adress for where to find $2000 
-
-                        ; Clearing data from $2000 to $4000  
-                        lda #0              ; turn all bits in bitmap off                      
-                        ldy #0              ; clear y (iterator for inner loop)  
-                        ldx #0              ; clear x (iterator for outer loop) 
-resetscreenmem          sta (videoadrLSB),y  ; Store in $2000+y                     
-                        iny 
-                        bne resetscreenmem
-                        ldx videoadrMSB     ; load msb of loop range                      
-                        inx                 ; inx                       
-                        stx videoadrMSB     ; save stored value back                      
-                        cpx #$40            ; we count to 3fff (I think, if we count to far it is only sprite memory I think)                        
-                        bne resetscreenmem
-
-
-antPosByteLSB = $ea                         ; which byte is ant in (choose any)    
+antPosByteLSB = $ea							  ; which byte is ant in (choose any)    
 antPosByteMSB = $eb
 antPosInByte = $e8                          ; position of ant within byte (choose any) 
 
+
+						; Set ant to beginning of screen memory
+                        lda #$20            ; baseMSB 
+                        sta antPosByteMSB
+                        lda #0              ;baseLSB 
+                        sta antPosByteLSB
+
+                        ; Force ant round to clear data from $2000 to $4000
+                        lda #0              ; turn all bits in bitmap off                      
+                        ldy #0              ; clear y (iterator for inner loop)  
+                        ldx #0              ; clear x (iterator for outer loop) 
+resetscreenmem          sta (antPosByteLSB),y  ; Store in $2000+y                     
+                        iny 
+                        bne resetscreenmem
+                        ldx antPosByteMSB     ; load msb of loop range                      
+                        inx                 ; inx                       
+                        stx antPosByteMSB     ; save stored value back                      
+                        cpx #$40            ; we count to 3fff (I think, if we count to far it is only sprite memory I think)                        
+                        bne resetscreenmem
+
+						; Time to give ant life of his own
                         ; store dir in f3                  
                         lda #0              ; dir 0                 
                         sta dir
                         ; Set xy position        
                         lda #%00010000
                         sta antPosInByte
-                        lda #$2f            ;position middle         
+					    lda #$2f            ;position middle, 0x2FA0-0x2000=0xFA0=4000
                         sta antPosByteMSB
-                        lda #$a3            ;position middle         
+                        lda #$a0            ;position middle         
                         sta antPosByteLSB
 
                         ; This is the main program   
-dir = $f3                                   ; ant  memory location              
+dir = $f3               ; ant  memory location              
 right = #0              ; using 0 for right and adding 64 when turning left      
 up = #64                ; This allows for wrapping around automatically      
 left = #128
