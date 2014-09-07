@@ -1,20 +1,10 @@
                         * = $1000
-
 regbase = $d000         ; base adress for registermainpulation     
-videoadrLSB = $fa
-videoadrMSB = $fb
-baseMSB = #$20
-baseLSB = #$00
 start                   ; Configure HI RES display              
-                        lda #$3b            ; Bit 5 on                     
-                        sta regbase + 17    ; Reg 17 Bit 5 enable high res                       
                         lda #$18            ; Point to high res memory map                      
                         sta regbase + 24    ; Reg 24                          
-                        lda baseLSB
-                        sta videoadrLSB
-                        lda baseMSB
-                        sta videoadrMSB
-
+                        lda #$3b            ; Bitmask bit 5 on                     
+                        sta regbase + 17    ; Reg 17 Bit 5 enable high res                       
 
 ; Set color in 25*40 grid to black and white            
 ; For each character we can set the color we should have for on and off     
@@ -33,6 +23,14 @@ resetcolorscheme        dey
                         ; must clear all bits from $20 to $40     
                         ; We have 320*200/8 = 8000 bytes to clear     
                         ; in loops of 256 bytes = 31     
+						videoadrLSB = $fa
+						videoadrMSB = $fb
+
+                        lda #0;baseLSB
+                        sta videoadrLSB
+                        lda #$20; baseMSB
+                        sta videoadrMSB
+
                         lda #0              ; turn all bits in bitmap off                     
                         ldy #0              ; clear y (iterator)		                     
 resetscreenmem          sta (videoadrLSB),y  ; Store in fb,fa location+y                     
@@ -61,7 +59,7 @@ right = #0              ; using 0 for right and adding 64 when turning left
 up = #64                ; This allows for wrapping around automatically     
 left = #128
 down = #192
-antPosByteLSB = $ea     ; which byte is ant in    
+antPosByteLSB = $ea     ; which byte is ant in (    
 antPosByteMSB = $eb
 antPosInByte = $e8      ; position of ant within byte    
 
