@@ -61,10 +61,6 @@ resetscreenmem          sta (antPosByteLSB),y  ; Store in $2000+y
                         ; This is the main program    
 dir = $fb                                   ; ant  memory location                
 dirMSB = $fc                                ; used for trick 
-right = #0              ; using 0 for right and adding 64 when turning left       
-up = #64                ; This allows for wrapping around automatically       
-left = #128
-down = #192
 
 loop                    lda antPosInByte    ; load bit flag for which bit to turn on                      
                         ldy #0              ; not sure how to do eor to 16 bit address without index                     
