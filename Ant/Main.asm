@@ -48,6 +48,8 @@ resetscreenmem          sta (antPosByteLSB),y  ; Store in $2000+y
                         ; store dir in f3                  
                         lda #0              ; dir 0                 
                         sta dir
+                        lda #$50
+						sta dirMSB
                         ; Set xy position        
                         lda #%00010000
                         sta antPosInByte
@@ -57,7 +59,8 @@ resetscreenmem          sta (antPosByteLSB),y  ; Store in $2000+y
                         sta antPosByteLSB
 
                         ; This is the main program   
-dir = $f3               ; ant  memory location              
+dir = $fb                                   ; ant  memory location               
+dirMSB = $fc               ; used for trick
 right = #0              ; using 0 for right and adding 64 when turning left      
 up = #64                ; This allows for wrapping around automatically      
 left = #128
@@ -81,12 +84,8 @@ isOnWhiteSpot           lda dir             ; load directions into accumulator
                         sec                 ; Must set overflow before "turning"   
                         sbc #64             ; turn left is subtracing 64        
                         sta dir
-checkdir                cmp down            ; acc already holds direction, comparing <= 192       
-                        bcs godown          ;        
-                        cmp left            ; <= 128       
-                        bcs goleft
-                        cmp up
-                        bcs goup            ; fall through to right         
+checkdir                jmp (dir)
+* = $5000						  
                         lda antPosInByte    ; go right       
                         cmp #%00000001      ; check if we are moving to the character to the right   
                         beq goToRightChar
@@ -102,6 +101,7 @@ goToRightChar           lda #%10000000      ; Change bitflag to other side
                         adc #0
                         sta antPosByteMSB
                         jmp loop
+* = $5040						  
 goup                    lda antPosByteLSB
                         and #$07
                         beq gouptonextchar  ; branch if three last bits is zero        
@@ -115,6 +115,7 @@ gouptonextchar          sec                 ; result is zero, set carry to borro
                         sbc #1
                         sta antPosByteMSB
                         jmp loop
+* = $50C0						  
 godown                  lda antPosByteLSB
                         and #7
                         cmp #7              ; Check if at bottom of character   
@@ -129,6 +130,7 @@ godowntonextchar        clc
                         adc #1
                         sta antPosByteMSB
                         jmp loop
+* = $5080						  
 goleft                  lda antPosInByte
                         cmp #%10000000
                         beq goToLeftChar
