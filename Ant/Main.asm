@@ -20,9 +20,10 @@ resetcolorscheme        dey
                         sta videocolorbase + $02EE,y  ; 750-999       
                         bne resetcolorscheme
 
-antPosByteLSB = $ea                         ; which byte is ant in (choose any)     
-antPosByteMSB = $eb
+antPosByteLSB = $fa                         ; which byte is ant in (choose any)     
+antPosByteMSB = $fb
 antPosInByte = $e8                          ; position of ant within byte (choose any)  
+
 
 
                         ; Set ant to beginning of screen memory 
@@ -46,10 +47,6 @@ resetscreenmem          sta (antPosByteLSB),y  ; Store in $2000+y
 
                         ; Time to give ant life of his own 
                         ; store dir in f3                   
-                        lda #0              ; dir 0                  
-                        sta dir
-                        lda #$50
-                        sta dirMSB
                         ; Set xy position         
                         lda #%00010000
                         sta antPosInByte
@@ -59,8 +56,7 @@ resetscreenmem          sta (antPosByteLSB),y  ; Store in $2000+y
                         sta antPosByteLSB
 
                         ; This is the main program    
-dir = $fb                                   ; ant  memory location                
-dirMSB = $fc                                ; used for trick 
+dir = $1069                         ; ant  memory location                
 
 loop                    lda antPosInByte    ; load bit flag for which bit to turn on                      
                         ldy #0              ; not sure how to do eor to 16 bit address without index                     
@@ -79,8 +75,8 @@ loop                    lda antPosInByte    ; load bit flag for which bit to tur
 isOnWhiteSpot           lda dir             ; load directions into accumulator         
                         sec                 ; Must set overflow before "turning"    
                         sbc #64             ; turn left is subtracing 64         
-                        sta dir
-checkdir                jmp (dir)
+                        sta dir 
+checkdir                jmp $5000
                         * = $5000
                         lda antPosInByte    ; go right        
                         cmp #%00000001      ; check if we are moving to the character to the right    
