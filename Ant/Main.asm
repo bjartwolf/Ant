@@ -2,7 +2,7 @@
 regbase = $d000                             ; base adress for registermainpulation       
 start                   ; Configure HI RES display                
                         lda #$18            ; Point to high res memory map  
-                        sta regbase + 24    ; Reg 24, $d024                  
+                        sta regbase + 24    ; Reg 24, $d024   (THIS IS WRONG!, it is dec 24 and dec 17)               
                         lda #$3b            ; Bitmask bit 5 on                       
                         sta regbase + 17    ; Reg 17, $d017 Bit 5 enable high res                         
 
