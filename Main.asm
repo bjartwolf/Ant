@@ -54,7 +54,7 @@ resetscreenmem:         sta (antPosByteLSB),y  // Store in $2000+y
                         jmp loop
 
                         // This is the main program    
-.var dir = $106c                         // ant  memory location                
+.var dir = checkdir + 1// ant  memory location                
 
 loop:                   lda antPosInByte    // load bit flag for which bit to turn on                      
                         ldy #0              // not sure how to do eor to 16 bit address without index                     
