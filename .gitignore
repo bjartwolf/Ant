@@ -1,3 +1,7 @@
 *.suo
 *.prg
 /tools/
+Main.dbg
+Main.sym
+Main.vs
+.source.txt

@@ -1,0 +1,5 @@
+{
+    "kickassembler.assembler.jar": "C:\\code\\ant\\tools\\kickass\\KickAss.jar",
+    "kickassembler.java.runtime": "C:\\Program Files\\Microsoft\\jdk-11.0.15.10-hotspot\\bin\\java.exe",
+    "kickassembler.debugger.runtime": "C:\\code\\ant\\tools\\debugger\\C64Debugger.exe"
+}
