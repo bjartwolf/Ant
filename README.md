@@ -10,3 +10,4 @@ and 64TASS, but migrating to Kick Assembler and Retro Studio.
 
 ❯ & 'C:\Program Files\Microsoft\jdk-25.0.1.8-hotspot\bin\java.exe' -jar .\tools\kickass\KickAss.jar .\Main.asm -o ant.pr❯ & 'C:\Program Files\Microsoft\jdk-25.0.1.8-hotspot\bin\java.exe' -jar .\tools\kickass\KickAss.jar .\Main.asm -o ant.prg
 
+❯ & '.\tools\vice\bin\c1541.exe' -format mydisk,01 d64 ant.d64 -write main.prg main
