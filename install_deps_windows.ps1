@@ -1,3 +1,4 @@
+winget install Microsoft.OpenJDK.25
 wget https://www.badgerpunch.com/booster/kickass.zip -OutFile kickass.zip
 wget https://www.badgerpunch.com/booster/vice.zip -OutFile vice.zip
 
